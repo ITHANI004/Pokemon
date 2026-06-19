@@ -221,13 +221,21 @@ async function openModal(poke) {
         });
         evolutionsHTML += '</div>';
 
+        const defaultSprite = poke.sprite_url;
+        const shinySprite = data.sprites?.other?.['official-artwork']?.front_shiny || data.sprites?.front_shiny;
+        const cryUrl = data.cries?.latest;
+
         modalBody.innerHTML = `
             <div class="modal-header">
                 <div class="modal-img-container" style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);">
-                    <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
+                    <img id="modal-main-img" class="modal-img" src="${defaultSprite || '/vite.svg'}" alt="${poke.name}">
                 </div>
                 <div class="modal-title">
-                    <h2>${poke.name}</h2>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <h2>${poke.name}</h2>
+                        ${cryUrl ? `<button id="btn-cry" class="action-btn" title="Play Cry">🔊</button>` : ''}
+                        ${shinySprite ? `<button id="btn-shiny" class="action-btn" title="Toggle Shiny">✨</button>` : ''}
+                    </div>
                     <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
                 </div>
             </div>
@@ -236,6 +244,27 @@ async function openModal(poke) {
             <div style="text-align: center; margin-top: 2.5rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Evolutionary Line</div>
             ${evolutionsHTML}
         `;
+
+        if (cryUrl) {
+            const audio = new Audio(cryUrl);
+            audio.volume = 0.5;
+            document.getElementById('btn-cry').onclick = () => {
+                audio.play();
+                const img = document.getElementById('modal-main-img');
+                img.style.transform = 'scale(1.2)';
+                setTimeout(() => img.style.transform = 'scale(1)', 200);
+            };
+        }
+
+        if (shinySprite) {
+            let isShiny = false;
+            document.getElementById('btn-shiny').onclick = (e) => {
+                isShiny = !isShiny;
+                document.getElementById('modal-main-img').src = isShiny ? shinySprite : defaultSprite;
+                e.target.style.background = isShiny ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+                e.target.style.color = isShiny ? '#121212' : '#fff';
+            };
+        }
 
         // Animate stat bars after render
         setTimeout(() => {
