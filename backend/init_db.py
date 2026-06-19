@@ -39,13 +39,13 @@ def populate_db(conn):
     # Re-run create table
     init_db()
 
-    print("Fetching data from PokeAPI (first 898 Pokemon)...")
-    url = "https://pokeapi.co/api/v2/pokemon?limit=898"
+    print("Fetching data from PokeAPI (all 1025 Pokemon)...")
+    url = "https://pokeapi.co/api/v2/pokemon?limit=1025"
     response = requests.get(url)
     results = response.json().get('results', [])
 
-    legendaries = {144, 145, 146, 150, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 384, 480, 481, 482, 483, 484, 485, 486, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 646, 716, 717, 718, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, 888, 889, 890, 891, 892}
-    mythicals = {151, 251, 385, 386, 489, 490, 492, 493, 494, 647, 648, 649, 719, 720, 721, 801, 802, 807, 808, 809, 893}
+    legendaries = {144, 145, 146, 150, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 384, 480, 481, 482, 483, 484, 485, 486, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 646, 716, 717, 718, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, 888, 889, 890, 891, 892, 894, 895, 896, 897, 898, 905, 1001, 1002, 1003, 1004, 1007, 1008, 1014, 1015, 1016, 1017, 1024}
+    mythicals = {151, 251, 385, 386, 489, 490, 492, 493, 494, 647, 648, 649, 719, 720, 721, 801, 802, 807, 808, 809, 893, 1025}
 
     print("Fetching individual details concurrently. This will be fast!")
     pokemon_records = []
@@ -70,6 +70,7 @@ def populate_db(conn):
             if pokedex_number > 649: generation = 6
             if pokedex_number > 721: generation = 7
             if pokedex_number > 809: generation = 8
+            if pokedex_number > 905: generation = 9
             
             is_legendary = pokedex_number in legendaries
             is_mythical = pokedex_number in mythicals
@@ -87,7 +88,7 @@ def populate_db(conn):
             
             completed += 1
             if completed % 100 == 0:
-                print(f"Fetched {completed}/898...")
+                print(f"Fetched {completed}/1025...")
 
     print("Inserting into database...")
     c = conn.cursor()
@@ -99,7 +100,7 @@ def populate_db(conn):
     ''', pokemon_records)
     
     conn.commit()
-    print("Database populated successfully with 898 Pokémon!")
+    print("Database populated successfully with 1025 Pokémon!")
 
 if __name__ == '__main__':
     conn = init_db()
