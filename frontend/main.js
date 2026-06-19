@@ -8,6 +8,8 @@ let activeTypes = new Set();
 let activeGens = new Set();
 let showLegendaryOnly = false;
 let showMythicalOnly = false;
+let showMegaOnly = false;
+let showRegionalOnly = false;
 let currentSearchTerm = '';
 
 const grid = document.getElementById('pokemon-grid');
@@ -21,6 +23,8 @@ const typeFiltersContainer = document.getElementById('type-filters');
 const genButtons = document.querySelectorAll('.gen-btn');
 const legendaryToggle = document.getElementById('legendaryToggle');
 const mythicalToggle = document.getElementById('mythicalToggle');
+const megaToggle = document.getElementById('megaToggle');
+const regionalToggle = document.getElementById('regionalToggle');
 
 // Modal Elements
 const modal = document.getElementById('pokeModal');
@@ -70,6 +74,16 @@ function setupFilterListeners() {
 
     mythicalToggle.onchange = (e) => {
         showMythicalOnly = e.target.checked;
+        applyFilters();
+    };
+
+    megaToggle.onchange = (e) => {
+        showMegaOnly = e.target.checked;
+        applyFilters();
+    };
+
+    regionalToggle.onchange = (e) => {
+        showRegionalOnly = e.target.checked;
         applyFilters();
     };
 }
@@ -134,6 +148,12 @@ function applyFilters() {
     if (showMythicalOnly) {
         filtered = filtered.filter(poke => poke.is_mythical);
     }
+    if (showMegaOnly) {
+        filtered = filtered.filter(poke => poke.is_mega);
+    }
+    if (showRegionalOnly) {
+        filtered = filtered.filter(poke => poke.is_regionalform);
+    }
 
     renderPokemon(filtered);
 }
@@ -156,6 +176,8 @@ function renderPokemon(pokemonList) {
         let traitsHTML = '';
         if (poke.is_legendary) traitsHTML += '<span class="trait-badge trait-legendary">Legendary</span>';
         if (poke.is_mythical) traitsHTML += '<span class="trait-badge trait-mythical">Mythical</span>';
+        if (poke.is_mega) traitsHTML += '<span class="trait-badge" style="background: rgba(183, 183, 206, 0.2); color: #B7B7CE;">Mega</span>';
+        if (poke.is_regionalform) traitsHTML += '<span class="trait-badge" style="background: rgba(169, 143, 243, 0.2); color: #A98FF3;">Regional</span>';
 
         card.innerHTML = `
             <div class="card-bg-shape"></div>

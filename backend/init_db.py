@@ -39,8 +39,8 @@ def populate_db(conn):
     # Re-run create table
     init_db()
 
-    print("Fetching data from PokeAPI (all 1025 Pokemon)...")
-    url = "https://pokeapi.co/api/v2/pokemon?limit=1025"
+    print("Fetching data from PokeAPI (Fetching all entities including Megas)...")
+    url = "https://pokeapi.co/api/v2/pokemon?limit=2000"
     response = requests.get(url)
     results = response.json().get('results', [])
 
@@ -72,17 +72,61 @@ def populate_db(conn):
             if pokedex_number > 809: generation = 8
             if pokedex_number > 905: generation = 9
             
-            is_legendary = pokedex_number in legendaries
-            is_mythical = pokedex_number in mythicals
-            is_mega = False
-            is_regionalform = False
+            is_mega = '-mega' in name.lower()
+            is_regionalform = ('-alola' in name.lower() or '-galar' in name.lower() or 
+                               '-hisui' in name.lower() or '-paldea' in name.lower())
             
+            # Skip forms we don't care about (like pikachu wearing hats, totem pokemon, gmax)
+            if pokedex_number > 1025:
+                if not (is_mega or is_regionalform):
+                    continue
+                # For megas/regionals, we map their generation to the base pokemon if we wanted to, 
+                # but leaving them as gen 9 or their base gen is fine. We will inherit base gen roughly
+                # from the species ID later if needed, but for now we'll just set them to Generation 0 or similar so they stand out.
+                # Actually, PokeAPI uses IDs like 10033 for Mega Venusaur.
+                generation = 0 
+                # Attempt to extract base ID from species URL to determine true generation
+                species_url = p_res.get('species', {}).get('url', '')
+                if species_url:
+                    try:
+                        base_id = int(species_url.rstrip('/').split('/')[-1])
+                        if base_id <= 151: generation = 1
+                        elif base_id <= 251: generation = 2
+                        elif base_id <= 386: generation = 3
+                        elif base_id <= 493: generation = 4
+                        elif base_id <= 649: generation = 5
+                        elif base_id <= 721: generation = 6
+                        elif base_id <= 809: generation = 7
+                        elif base_id <= 905: generation = 8
+                        elif base_id <= 1025: generation = 9
+                        
+                        is_legendary = base_id in legendaries
+                        is_mythical = base_id in mythicals
+                    except:
+                        pass
+                        
+            # Format name beautifully (e.g., "Venusaur-mega" -> "Mega Venusaur")
+            formatted_name = name.capitalize()
+            if is_mega:
+                parts = name.lower().split('-')
+                if parts[-1] in ['x', 'y']:
+                    formatted_name = f"Mega {parts[0].capitalize()} {parts[-1].upper()}"
+                else:
+                    formatted_name = f"Mega {parts[0].capitalize()}"
+            elif is_regionalform:
+                parts = name.lower().split('-')
+                region = parts[1].capitalize() # Alola, Galar, etc.
+                formatted_name = f"{region}n {parts[0].capitalize()}"
+
             sprites = p_res['sprites']
             sprite_url = (sprites.get('other', {}).get('official-artwork', {}).get('front_default') or 
                           sprites.get('front_default'))
             
+            if not sprite_url:
+                continue
+
             pokemon_records.append((
-                pokedex_number, name, type_1, type_2, generation, 
+                pokedex_number, formatted_name, type_1, type_2, generation, 
                 is_legendary, is_mythical, is_mega, is_regionalform, sprite_url
             ))
             
