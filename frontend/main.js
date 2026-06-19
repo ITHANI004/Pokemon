@@ -269,8 +269,12 @@ async function openModal(poke) {
             </div>
         `;
 
-        // Fetch Evolution Line
-        const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${poke.pokedex_number}`);
+        // Fetch Evolution Line (use data.species.url for Megas/Regional forms)
+        let speciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${poke.pokedex_number}`;
+        if (data.species && data.species.url) {
+            speciesUrl = data.species.url;
+        }
+        const speciesRes = await fetch(speciesUrl);
         const speciesData = await speciesRes.json();
         
         const evoRes = await fetch(speciesData.evolution_chain.url);
