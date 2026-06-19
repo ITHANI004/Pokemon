@@ -17,6 +17,9 @@
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Search by name, type, or ID...">
         </div>
+        <div id="type-filters" class="type-filters">
+            <!-- Filter buttons injected via JS -->
+        </div>
       </header>
       
       <main id="pokemon-grid" class="pokemon-grid">
@@ -25,6 +28,17 @@
       
       <div id="loading" class="loading">Loading Pokémon Database...</div>
     </div>
+
+    <!-- Modal for Pokemon Details -->
+    <div id="pokeModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <div id="modal-body">
+            <!-- Content injected via JS -->
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>

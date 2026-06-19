@@ -2,10 +2,18 @@ import './style.css';
 
 const API_URL = 'http://localhost:5000/api/pokemon';
 let allPokemon = [];
+let activeTypeFilter = null;
+let currentSearchTerm = '';
 
 const grid = document.getElementById('pokemon-grid');
 const searchInput = document.getElementById('searchInput');
 const loading = document.getElementById('loading');
+const typeFiltersContainer = document.getElementById('type-filters');
+
+// Modal Elements
+const modal = document.getElementById('pokeModal');
+const closeBtn = document.querySelector('.close-btn');
+const modalBody = document.getElementById('modal-body');
 
 async function fetchPokemon() {
     try {
@@ -13,11 +21,62 @@ async function fetchPokemon() {
         if (!res.ok) throw new Error('Failed to fetch from backend');
         allPokemon = await res.json();
         loading.style.display = 'none';
+        
+        renderTypeFilters();
         renderPokemon(allPokemon);
     } catch (err) {
         loading.textContent = 'Error connecting to backend database. Make sure Flask is running!';
         console.error(err);
     }
+}
+
+function renderTypeFilters() {
+    const types = new Set();
+    allPokemon.forEach(p => {
+        if (p.type_1) types.add(p.type_1);
+        if (p.type_2) types.add(p.type_2);
+    });
+
+    const sortedTypes = Array.from(types).sort();
+    
+    sortedTypes.forEach(type => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = type;
+        btn.onclick = () => {
+            // Toggle active state
+            if (activeTypeFilter === type) {
+                activeTypeFilter = null;
+                btn.classList.remove('active');
+            } else {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                activeTypeFilter = type;
+                btn.classList.add('active');
+            }
+            applyFilters();
+        };
+        typeFiltersContainer.appendChild(btn);
+    });
+}
+
+function applyFilters() {
+    let filtered = allPokemon;
+
+    if (currentSearchTerm) {
+        filtered = filtered.filter(poke => {
+            const nameMatch = poke.name.toLowerCase().includes(currentSearchTerm);
+            const idMatch = poke.pokedex_number.toString().includes(currentSearchTerm);
+            return nameMatch || idMatch;
+        });
+    }
+
+    if (activeTypeFilter) {
+        filtered = filtered.filter(poke => 
+            poke.type_1 === activeTypeFilter || poke.type_2 === activeTypeFilter
+        );
+    }
+
+    renderPokemon(filtered);
 }
 
 function renderPokemon(pokemonList) {
@@ -26,9 +85,8 @@ function renderPokemon(pokemonList) {
     pokemonList.forEach((poke, index) => {
         const card = document.createElement('div');
         card.className = 'pokemon-card';
-        card.style.animationDelay = `${(index % 20) * 0.05}s`; // Stagger animation for max 20 items at a time
+        card.style.animationDelay = `${(index % 20) * 0.05}s`;
 
-        // Format ID to 3 digits (e.g., #001)
         const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
 
         let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}">${poke.type_1}</span>`;
@@ -39,8 +97,6 @@ function renderPokemon(pokemonList) {
         let traitsHTML = '';
         if (poke.is_legendary) traitsHTML += '<span class="trait-badge trait-legendary">Legendary</span>';
         if (poke.is_mythical) traitsHTML += '<span class="trait-badge trait-mythical">Mythical</span>';
-        if (poke.is_mega) traitsHTML += '<span class="trait-badge">Mega</span>';
-        if (poke.is_regionalform) traitsHTML += '<span class="trait-badge">Regional Form</span>';
 
         card.innerHTML = `
             <div class="card-bg-shape"></div>
@@ -57,24 +113,117 @@ function renderPokemon(pokemonList) {
             </div>
         `;
         
+        card.onclick = () => openModal(poke);
         grid.appendChild(card);
     });
 }
 
 searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    
-    const filtered = allPokemon.filter(poke => {
-        const nameMatch = poke.name.toLowerCase().includes(searchTerm);
-        const idMatch = poke.pokedex_number.toString().includes(searchTerm);
-        const type1Match = poke.type_1.toLowerCase().includes(searchTerm);
-        const type2Match = poke.type_2 ? poke.type_2.toLowerCase().includes(searchTerm) : false;
-        
-        return nameMatch || idMatch || type1Match || type2Match;
-    });
-    
-    renderPokemon(filtered);
+    currentSearchTerm = e.target.value.toLowerCase();
+    applyFilters();
 });
+
+/* Modal Logic */
+async function openModal(poke) {
+    modal.classList.add('show');
+    const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
+    
+    modalBody.innerHTML = `
+        <div class="modal-header">
+            <div class="modal-img-container type-${poke.type_1.toLowerCase()}">
+                <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
+            </div>
+            <div class="modal-title">
+                <h2>${poke.name}</h2>
+                <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
+            </div>
+        </div>
+        <div style="text-align: center; color: var(--accent);">Fetching advanced stats...</div>
+    `;
+
+    try {
+        const res = await fetch(\`https://pokeapi.co/api/v2/pokemon/\${poke.pokedex_number}\`);
+        const data = await res.json();
+        
+        const maxStatValue = 255; // Blissey HP is 255
+        
+        let statsHTML = '<div class="stats-container">';
+        data.stats.forEach(stat => {
+            const statName = stat.stat.name.replace('-', ' ');
+            const statVal = stat.base_stat;
+            const percentage = (statVal / maxStatValue) * 100;
+            
+            // Color based on value
+            let color = '#ff3333';
+            if (statVal > 60) color = '#ff9d00';
+            if (statVal > 90) color = '#7AC74C';
+            if (statVal > 120) color = '#6390F0';
+            
+            statsHTML += `
+                <div class="stat-row">
+                    <div class="stat-label">${statName}</div>
+                    <div class="stat-value">${statVal}</div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-fill" style="background: \${color}; width: 0%;" data-target="\${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+        statsHTML += '</div>';
+
+        // Additional physical traits
+        const heightM = data.height / 10;
+        const weightKg = data.weight / 10;
+        
+        const extraTraits = `
+            <div style="display: flex; gap: 2rem; margin-top: 2rem; justify-content: center; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="text-align: center;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Height</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">\${heightM} m</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Weight</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">\${weightKg} kg</div>
+                </div>
+            </div>
+        `;
+
+        modalBody.innerHTML = `
+            <div class="modal-header">
+                <div class="modal-img-container" style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);">
+                    <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
+                </div>
+                <div class="modal-title">
+                    <h2>${poke.name}</h2>
+                    <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
+                </div>
+            </div>
+            \${statsHTML}
+            \${extraTraits}
+        `;
+
+        // Animate stat bars after render
+        setTimeout(() => {
+            const bars = document.querySelectorAll('.stat-bar-fill');
+            bars.forEach(bar => {
+                bar.style.width = bar.getAttribute('data-target');
+            });
+        }, 50);
+
+    } catch (err) {
+        modalBody.innerHTML += '<div style="color: red; text-align: center; margin-top: 1rem;">Failed to load stats.</div>';
+    }
+}
+
+closeBtn.onclick = () => {
+    modal.classList.remove('show');
+};
+
+window.onclick = (e) => {
+    if (e.target == modal) {
+        modal.classList.remove('show');
+    }
+};
 
 // Initialize
 fetchPokemon();
