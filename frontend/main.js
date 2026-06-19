@@ -113,11 +113,13 @@ function applyFilters() {
         });
     }
 
-    // 2. Multi-Type Filter (OR logic for types, i.e., "Fire OR Water")
+    // 2. Multi-Type Filter (AND logic for types)
     if (activeTypes.size > 0) {
-        filtered = filtered.filter(poke => 
-            activeTypes.has(poke.type_1) || activeTypes.has(poke.type_2)
-        );
+        filtered = filtered.filter(poke => {
+            const pokeTypes = [poke.type_1, poke.type_2].filter(Boolean);
+            // Ensure EVERY selected type is present on the Pokemon
+            return Array.from(activeTypes).every(t => pokeTypes.includes(t));
+        });
     }
 
     // 3. Multi-Generation Filter (OR logic for gens)
