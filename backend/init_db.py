@@ -2,6 +2,7 @@ import sqlite3
 import requests
 import json
 import os
+import concurrent.futures
 
 DB_PATH = 'pokemon.db'
 
@@ -25,53 +26,80 @@ def init_db():
     conn.commit()
     return conn
 
+def fetch_pokemon_data(url):
+    return requests.get(url).json()
+
 def populate_db(conn):
     c = conn.cursor()
-    # Check if we already have data
-    c.execute("SELECT COUNT(*) FROM pokemon")
-    if c.fetchone()[0] > 0:
-        print("Database already populated.")
-        return
+    
+    # Drop table to force refresh
+    c.execute("DROP TABLE IF EXISTS pokemon")
+    conn.commit()
+    
+    # Re-run create table
+    init_db()
 
-    print("Fetching data from PokeAPI (first 151 Pokemon)...")
-    url = "https://pokeapi.co/api/v2/pokemon?limit=151"
+    print("Fetching data from PokeAPI (first 898 Pokemon)...")
+    url = "https://pokeapi.co/api/v2/pokemon?limit=898"
     response = requests.get(url)
     results = response.json().get('results', [])
 
-    legendaries = {144, 145, 146, 150} # Articuno, Zapdos, Moltres, Mewtwo
-    mythicals = {151} # Mew
+    legendaries = {144, 145, 146, 150, 243, 244, 245, 249, 250, 377, 378, 379, 380, 381, 382, 383, 384, 480, 481, 482, 483, 484, 485, 486, 487, 488, 638, 639, 640, 641, 642, 643, 644, 645, 646, 716, 717, 718, 772, 773, 785, 786, 787, 788, 789, 790, 791, 792, 800, 888, 889, 890, 891, 892}
+    mythicals = {151, 251, 385, 386, 489, 490, 492, 493, 494, 647, 648, 649, 719, 720, 721, 801, 802, 807, 808, 809, 893}
 
-    for item in results:
-        pokemon_url = item['url']
-        p_res = requests.get(pokemon_url).json()
-        
-        pokedex_number = p_res['id']
-        name = p_res['name'].capitalize()
-        
-        types = p_res['types']
-        type_1 = types[0]['type']['name'].capitalize()
-        type_2 = types[1]['type']['name'].capitalize() if len(types) > 1 else None
-        
-        generation = 1 # We are just pulling gen 1 for speed
-        is_legendary = pokedex_number in legendaries
-        is_mythical = pokedex_number in mythicals
-        is_mega = False
-        is_regionalform = False
-        sprite_url = p_res['sprites']['other']['official-artwork']['front_default'] or p_res['sprites']['front_default']
-
-        c.execute('''
-            INSERT INTO pokemon (
+    print("Fetching individual details concurrently. This will be fast!")
+    pokemon_records = []
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        futures = {executor.submit(fetch_pokemon_data, item['url']): item for item in results}
+        completed = 0
+        for future in concurrent.futures.as_completed(futures):
+            p_res = future.result()
+            pokedex_number = p_res['id']
+            name = p_res['name'].capitalize()
+            
+            types = p_res['types']
+            type_1 = types[0]['type']['name'].capitalize()
+            type_2 = types[1]['type']['name'].capitalize() if len(types) > 1 else None
+            
+            generation = 1
+            if pokedex_number > 151: generation = 2
+            if pokedex_number > 251: generation = 3
+            if pokedex_number > 386: generation = 4
+            if pokedex_number > 493: generation = 5
+            if pokedex_number > 649: generation = 6
+            if pokedex_number > 721: generation = 7
+            if pokedex_number > 809: generation = 8
+            
+            is_legendary = pokedex_number in legendaries
+            is_mythical = pokedex_number in mythicals
+            is_mega = False
+            is_regionalform = False
+            
+            sprites = p_res['sprites']
+            sprite_url = (sprites.get('other', {}).get('official-artwork', {}).get('front_default') or 
+                          sprites.get('front_default'))
+            
+            pokemon_records.append((
                 pokedex_number, name, type_1, type_2, generation, 
                 is_legendary, is_mythical, is_mega, is_regionalform, sprite_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (pokedex_number, name, type_1, type_2, generation, 
-              is_legendary, is_mythical, is_mega, is_regionalform, sprite_url))
-        
-        if pokedex_number % 20 == 0:
-            print(f"Loaded {pokedex_number}...")
+            ))
+            
+            completed += 1
+            if completed % 100 == 0:
+                print(f"Fetched {completed}/898...")
 
+    print("Inserting into database...")
+    c = conn.cursor()
+    c.executemany('''
+        INSERT INTO pokemon (
+            pokedex_number, name, type_1, type_2, generation, 
+            is_legendary, is_mythical, is_mega, is_regionalform, sprite_url
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', pokemon_records)
+    
     conn.commit()
-    print("Database populated successfully!")
+    print("Database populated successfully with 898 Pokémon!")
 
 if __name__ == '__main__':
     conn = init_db()
