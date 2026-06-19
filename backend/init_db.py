@@ -72,6 +72,8 @@ def populate_db(conn):
             if pokedex_number > 809: generation = 8
             if pokedex_number > 905: generation = 9
             
+            is_legendary = pokedex_number in legendaries
+            is_mythical = pokedex_number in mythicals
             is_mega = '-mega' in name.lower()
             is_regionalform = ('-alola' in name.lower() or '-galar' in name.lower() or 
                                '-hisui' in name.lower() or '-paldea' in name.lower())
