@@ -2,13 +2,25 @@ import './style.css';
 
 const API_URL = 'http://localhost:5000/api/pokemon';
 let allPokemon = [];
-let activeTypeFilter = null;
+
+// Advanced Filter State
+let activeTypes = new Set();
+let activeGens = new Set();
+let showLegendaryOnly = false;
+let showMythicalOnly = false;
 let currentSearchTerm = '';
 
 const grid = document.getElementById('pokemon-grid');
 const searchInput = document.getElementById('searchInput');
 const loading = document.getElementById('loading');
+
+// Filter UI Elements
+const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+const advancedFilters = document.getElementById('advancedFilters');
 const typeFiltersContainer = document.getElementById('type-filters');
+const genButtons = document.querySelectorAll('.gen-btn');
+const legendaryToggle = document.getElementById('legendaryToggle');
+const mythicalToggle = document.getElementById('mythicalToggle');
 
 // Modal Elements
 const modal = document.getElementById('pokeModal');
@@ -23,11 +35,43 @@ async function fetchPokemon() {
         loading.style.display = 'none';
         
         renderTypeFilters();
+        setupFilterListeners();
         renderPokemon(allPokemon);
     } catch (err) {
         loading.textContent = 'Error connecting to backend database. Make sure Flask is running!';
         console.error(err);
     }
+}
+
+function setupFilterListeners() {
+    toggleFiltersBtn.onclick = () => {
+        advancedFilters.classList.toggle('collapsed');
+        toggleFiltersBtn.classList.toggle('active');
+    };
+
+    genButtons.forEach(btn => {
+        btn.onclick = () => {
+            const gen = parseInt(btn.getAttribute('data-gen'));
+            if (activeGens.has(gen)) {
+                activeGens.delete(gen);
+                btn.classList.remove('active');
+            } else {
+                activeGens.add(gen);
+                btn.classList.add('active');
+            }
+            applyFilters();
+        };
+    });
+
+    legendaryToggle.onchange = (e) => {
+        showLegendaryOnly = e.target.checked;
+        applyFilters();
+    };
+
+    mythicalToggle.onchange = (e) => {
+        showMythicalOnly = e.target.checked;
+        applyFilters();
+    };
 }
 
 function renderTypeFilters() {
@@ -44,13 +88,11 @@ function renderTypeFilters() {
         btn.className = 'filter-btn';
         btn.textContent = type;
         btn.onclick = () => {
-            // Toggle active state
-            if (activeTypeFilter === type) {
-                activeTypeFilter = null;
+            if (activeTypes.has(type)) {
+                activeTypes.delete(type);
                 btn.classList.remove('active');
             } else {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                activeTypeFilter = type;
+                activeTypes.add(type);
                 btn.classList.add('active');
             }
             applyFilters();
@@ -62,6 +104,7 @@ function renderTypeFilters() {
 function applyFilters() {
     let filtered = allPokemon;
 
+    // 1. Text Search
     if (currentSearchTerm) {
         filtered = filtered.filter(poke => {
             const nameMatch = poke.name.toLowerCase().includes(currentSearchTerm);
@@ -70,10 +113,24 @@ function applyFilters() {
         });
     }
 
-    if (activeTypeFilter) {
+    // 2. Multi-Type Filter (OR logic for types, i.e., "Fire OR Water")
+    if (activeTypes.size > 0) {
         filtered = filtered.filter(poke => 
-            poke.type_1 === activeTypeFilter || poke.type_2 === activeTypeFilter
+            activeTypes.has(poke.type_1) || activeTypes.has(poke.type_2)
         );
+    }
+
+    // 3. Multi-Generation Filter (OR logic for gens)
+    if (activeGens.size > 0) {
+        filtered = filtered.filter(poke => activeGens.has(poke.generation));
+    }
+
+    // 4. Legendary/Mythical Filter
+    if (showLegendaryOnly) {
+        filtered = filtered.filter(poke => poke.is_legendary);
+    }
+    if (showMythicalOnly) {
+        filtered = filtered.filter(poke => poke.is_mythical);
     }
 
     renderPokemon(filtered);
@@ -221,21 +278,13 @@ async function openModal(poke) {
         });
         evolutionsHTML += '</div>';
 
-        const defaultSprite = poke.sprite_url;
-        const shinySprite = data.sprites?.other?.['official-artwork']?.front_shiny || data.sprites?.front_shiny;
-        const cryUrl = data.cries?.latest;
-
         modalBody.innerHTML = `
             <div class="modal-header">
                 <div class="modal-img-container" style="background: radial-gradient(circle, var(--accent) 0%, transparent 70%);">
-                    <img id="modal-main-img" class="modal-img" src="${defaultSprite || '/vite.svg'}" alt="${poke.name}">
+                    <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
                 </div>
                 <div class="modal-title">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <h2>${poke.name}</h2>
-                        ${cryUrl ? `<button id="btn-cry" class="action-btn" title="Play Cry">🔊</button>` : ''}
-                        ${shinySprite ? `<button id="btn-shiny" class="action-btn" title="Toggle Shiny">✨</button>` : ''}
-                    </div>
+                    <h2>${poke.name}</h2>
                     <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
                 </div>
             </div>
@@ -244,27 +293,6 @@ async function openModal(poke) {
             <div style="text-align: center; margin-top: 2.5rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Evolutionary Line</div>
             ${evolutionsHTML}
         `;
-
-        if (cryUrl) {
-            const audio = new Audio(cryUrl);
-            audio.volume = 0.5;
-            document.getElementById('btn-cry').onclick = () => {
-                audio.play();
-                const img = document.getElementById('modal-main-img');
-                img.style.transform = 'scale(1.2)';
-                setTimeout(() => img.style.transform = 'scale(1)', 200);
-            };
-        }
-
-        if (shinySprite) {
-            let isShiny = false;
-            document.getElementById('btn-shiny').onclick = (e) => {
-                isShiny = !isShiny;
-                document.getElementById('modal-main-img').src = isShiny ? shinySprite : defaultSprite;
-                e.target.style.background = isShiny ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
-                e.target.style.color = isShiny ? '#121212' : '#fff';
-            };
-        }
 
         // Animate stat bars after render
         setTimeout(() => {
