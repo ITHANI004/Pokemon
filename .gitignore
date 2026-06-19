@@ -16,6 +16,9 @@ dist-ssr/
 # Database
 *.db
 *.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
 
 # OS
 .DS_Store
