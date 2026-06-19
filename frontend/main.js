@@ -142,7 +142,7 @@ async function openModal(poke) {
     `;
 
     try {
-        const res = await fetch(\`https://pokeapi.co/api/v2/pokemon/\${poke.pokedex_number}\`);
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${poke.pokedex_number}`);
         const data = await res.json();
         
         const maxStatValue = 255; // Blissey HP is 255
@@ -164,7 +164,7 @@ async function openModal(poke) {
                     <div class="stat-label">${statName}</div>
                     <div class="stat-value">${statVal}</div>
                     <div class="stat-bar-bg">
-                        <div class="stat-bar-fill" style="background: \${color}; width: 0%;" data-target="\${percentage}%"></div>
+                        <div class="stat-bar-fill" style="background: ${color}; width: 0%;" data-target="${percentage}%"></div>
                     </div>
                 </div>
             `;
@@ -179,14 +179,47 @@ async function openModal(poke) {
             <div style="display: flex; gap: 2rem; margin-top: 2rem; justify-content: center; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
                 <div style="text-align: center;">
                     <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Height</div>
-                    <div style="font-size: 1.2rem; font-weight: bold;">\${heightM} m</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">${heightM} m</div>
                 </div>
                 <div style="text-align: center;">
                     <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Weight</div>
-                    <div style="font-size: 1.2rem; font-weight: bold;">\${weightKg} kg</div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">${weightKg} kg</div>
                 </div>
             </div>
         `;
+
+        // Fetch Evolution Line
+        const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${poke.pokedex_number}`);
+        const speciesData = await speciesRes.json();
+        
+        const evoRes = await fetch(speciesData.evolution_chain.url);
+        const evoData = await evoRes.json();
+        
+        function getEvolutions(chain) {
+            let evos = [chain.species.name];
+            chain.evolves_to.forEach(child => {
+                evos = evos.concat(getEvolutions(child));
+            });
+            return evos;
+        }
+        
+        const evoNames = getEvolutions(evoData.chain);
+        
+        let evolutionsHTML = '<div class="evo-container">';
+        
+        evoNames.forEach(name => {
+            const foundPoke = allPokemon.find(p => p.name.toLowerCase() === name.toLowerCase());
+            if (foundPoke) {
+                const isCurrent = foundPoke.pokedex_number === poke.pokedex_number;
+                evolutionsHTML += `
+                    <div class="evo-item ${isCurrent ? 'active' : ''}" data-id="${foundPoke.pokedex_number}">
+                        <img src="${foundPoke.sprite_url || '/vite.svg'}" alt="${foundPoke.name}">
+                        <span>${foundPoke.name}</span>
+                    </div>
+                `;
+            }
+        });
+        evolutionsHTML += '</div>';
 
         modalBody.innerHTML = `
             <div class="modal-header">
@@ -198,8 +231,10 @@ async function openModal(poke) {
                     <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
                 </div>
             </div>
-            \${statsHTML}
-            \${extraTraits}
+            ${statsHTML}
+            ${extraTraits}
+            <div style="text-align: center; margin-top: 2.5rem; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Evolutionary Line</div>
+            ${evolutionsHTML}
         `;
 
         // Animate stat bars after render
@@ -209,6 +244,22 @@ async function openModal(poke) {
                 bar.style.width = bar.getAttribute('data-target');
             });
         }, 50);
+
+        // Attach click events for evolutions
+        document.querySelectorAll('.evo-item').forEach(el => {
+            el.onclick = () => {
+                const targetId = parseInt(el.getAttribute('data-id'));
+                const targetPoke = allPokemon.find(p => p.pokedex_number === targetId);
+                if (targetPoke) {
+                    // Slight visual tweak: fade out current modal content slightly before opening next
+                    modalBody.style.opacity = '0.5';
+                    setTimeout(() => {
+                        modalBody.style.opacity = '1';
+                        openModal(targetPoke);
+                    }, 150);
+                }
+            };
+        });
 
     } catch (err) {
         modalBody.innerHTML += '<div style="color: red; text-align: center; margin-top: 1rem;">Failed to load stats.</div>';
