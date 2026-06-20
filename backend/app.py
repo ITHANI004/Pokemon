@@ -1,11 +1,13 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import sqlite3
+import os
 
 app = Flask(__name__)
 CORS(app) # Allow frontend to make requests
 
-DB_PATH = 'pokemon.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'pokemon.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)

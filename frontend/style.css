@@ -87,12 +87,11 @@ header p {
 }
 
 .pokemon-card {
-  background: var(--card-bg);
+  background: rgba(40, 40, 40, 0.6);
   border-radius: 20px;
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
@@ -101,6 +100,10 @@ header p {
   align-items: center;
   opacity: 0;
   animation: fadeIn 0.6s ease forwards;
+  
+  content-visibility: auto;
+  contain-intrinsic-size: 350px;
+  will-change: transform, opacity;
 }
 
 .pokemon-card:hover {
@@ -404,13 +407,26 @@ header p {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   padding: 2.5rem;
-  width: 90%;
-  max-width: 600px;
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   transform: translateY(20px);
   transition: transform 0.3s ease;
   color: white;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
 }
 
 .modal.show .modal-content {
@@ -419,17 +435,32 @@ header p {
 
 .close-btn {
   position: absolute;
-  top: 1rem;
-  right: 1.5rem;
+  top: 1.5rem;
+  right: 2rem;
   color: var(--text-secondary);
   font-size: 2rem;
   font-weight: bold;
   cursor: pointer;
   transition: color 0.3s;
+  z-index: 10;
 }
 
 .close-btn:hover {
   color: white;
+}
+
+/* Modal Internal Layout */
+.modal-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .modal-body-grid {
+      grid-template-columns: 1fr;
+  }
 }
 
 /* Modal Internal Layout */
@@ -549,4 +580,13 @@ header p {
     margin-top: 0.5rem;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+.evo-arrow {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    opacity: 0.7;
+    margin: 0 0.5rem;
 }

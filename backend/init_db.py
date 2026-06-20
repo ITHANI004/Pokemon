@@ -26,8 +26,18 @@ def init_db():
     conn.commit()
     return conn
 
+import time
+
 def fetch_pokemon_data(url):
-    return requests.get(url).json()
+    for attempt in range(5):
+        try:
+            r = requests.get(url, timeout=10)
+            if r.status_code == 200:
+                return r.json()
+        except Exception:
+            pass
+        time.sleep(2)
+    return None
 
 def populate_db(conn):
     c = conn.cursor()
@@ -50,11 +60,14 @@ def populate_db(conn):
     print("Fetching individual details concurrently. This will be fast!")
     pokemon_records = []
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(fetch_pokemon_data, item['url']): item for item in results}
         completed = 0
         for future in concurrent.futures.as_completed(futures):
             p_res = future.result()
+            if not p_res:
+                completed += 1
+                continue
             pokedex_number = p_res['id']
             name = p_res['name'].capitalize()
             
@@ -78,14 +91,8 @@ def populate_db(conn):
             is_regionalform = ('-alola' in name.lower() or '-galar' in name.lower() or 
                                '-hisui' in name.lower() or '-paldea' in name.lower())
             
-            # Skip forms we don't care about (like pikachu wearing hats, totem pokemon, gmax)
+            # Process all forms
             if pokedex_number > 1025:
-                if not (is_mega or is_regionalform):
-                    continue
-                # For megas/regionals, we map their generation to the base pokemon if we wanted to, 
-                # but leaving them as gen 9 or their base gen is fine. We will inherit base gen roughly
-                # from the species ID later if needed, but for now we'll just set them to Generation 0 or similar so they stand out.
-                # Actually, PokeAPI uses IDs like 10033 for Mega Venusaur.
                 generation = 0 
                 # Attempt to extract base ID from species URL to determine true generation
                 species_url = p_res.get('species', {}).get('url', '')
@@ -107,8 +114,8 @@ def populate_db(conn):
                     except:
                         pass
                         
-            # Format name beautifully (e.g., "Venusaur-mega" -> "Mega Venusaur")
-            formatted_name = name.capitalize()
+            # Format name beautifully
+            formatted_name = name.replace('-', ' ').title()
             if is_mega:
                 parts = name.lower().split('-')
                 if parts[-1] in ['x', 'y']:
@@ -133,8 +140,8 @@ def populate_db(conn):
             ))
             
             completed += 1
-            if completed % 100 == 0:
-                print(f"Fetched {completed}/1025...")
+            if completed % 20 == 0:
+                print(f"Fetched {completed}/{len(results)}...")
 
     print("Inserting into database...")
     c = conn.cursor()
