@@ -305,10 +305,10 @@ async function openModal(poke) {
                 <div id="modal-chart-area">
                     <div style="text-align: center; color: ${mainColor}; margin: 2rem; font-weight: bold;">Fetching advanced stats...</div>
                 </div>
-                <div id="evo-section" style="margin-top: 2rem; min-height: 100px;">
-                    <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
-                </div>
             </div>
+        </div>
+        <div id="evo-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); min-height: 100px;">
+            <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
         </div>
     `;
 
