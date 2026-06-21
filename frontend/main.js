@@ -510,15 +510,15 @@ async function loadEvolutionTree(poke, data, mainColor) {
                     const methodStr = getEvolutionMethod(child.evolution_details);
                     html += `
                         <div class="evo-arrow-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 1rem;">
-                            <div class="evo-method" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: capitalize; margin-bottom: -0.2rem; text-align: center; max-width: 80px; line-height: 1.2;">${methodStr}</div>
-                            <div class="evo-arrow" style="color: ${mainColor}; font-size: 1.5rem; margin: 0;">➔</div>
+                            <div class="evo-method" style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize; margin-bottom: 0.5rem; text-align: center; max-width: 90px; line-height: 1.2; background: rgba(0,0,0,0.3); padding: 0.3rem 0.6rem; border-radius: 6px;">${methodStr}</div>
+                            <div class="evo-arrow" style="color: ${mainColor}; font-size: 2rem; margin: 0;">➔</div>
                         </div>
                     `;
                     html += buildEvoTree(child, mainColor, currentId);
                 } else {
                     html += `
                         <div class="evo-arrow-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 1.5rem;">
-                            <div class="evo-arrow" style="color: ${mainColor}; font-size: 2rem; margin: 0;">➔</div>
+                            <div class="evo-arrow" style="color: ${mainColor}; font-size: 2.5rem; margin: 0;">➔</div>
                         </div>
                         <div class="evo-branches" style="display: flex; flex-wrap: wrap; gap: 1.5rem; max-width: 500px; justify-content: flex-start; border-left: 2px solid rgba(255,255,255,0.05); padding-left: 1.5rem;">
                     `;
@@ -526,7 +526,7 @@ async function loadEvolutionTree(poke, data, mainColor) {
                         const methodStr = getEvolutionMethod(child.evolution_details);
                         html += `
                             <div style="display: flex; flex-direction: column; align-items: center;">
-                                <div class="evo-method" style="font-size: 0.65rem; color: var(--text-secondary); text-transform: capitalize; margin-bottom: 0.5rem; text-align: center; max-width: 80px; line-height: 1.1; background: rgba(0,0,0,0.3); padding: 0.3rem 0.5rem; border-radius: 6px;">${methodStr}</div>
+                                <div class="evo-method" style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize; margin-bottom: 0.5rem; text-align: center; max-width: 90px; line-height: 1.1; background: rgba(0,0,0,0.3); padding: 0.3rem 0.6rem; border-radius: 6px;">${methodStr}</div>
                                 ${buildEvoTree(child, mainColor, currentId)}
                             </div>
                         `;

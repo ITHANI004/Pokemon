@@ -551,9 +551,9 @@ header p {
     align-items: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    opacity: 0.5;
-    padding: 0.5rem;
-    border-radius: 12px;
+    opacity: 0.6;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
 }
 
 .evo-item:hover {
@@ -564,22 +564,22 @@ header p {
 
 .evo-item.active {
     opacity: 1;
-    transform: scale(1.1);
+    transform: scale(1.15);
     background: rgba(255, 203, 5, 0.1);
     border: 1px solid rgba(255, 203, 5, 0.3);
 }
 
 .evo-item img {
-    width: 60px;
-    height: 60px;
+    width: 90px;
+    height: 90px;
     object-fit: contain;
     filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
 }
 
 .evo-item span {
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+    margin-top: 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 700;
 }
 
 .evo-arrow {
