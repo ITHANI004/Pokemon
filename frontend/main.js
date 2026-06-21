@@ -542,8 +542,8 @@ async function loadEvolutionTree(poke, data, mainColor) {
         const evolutionsHTML = buildEvoTree(chain, mainColor, poke.pokedex_number);
 
         evoSection.innerHTML = `
-            <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-bottom: 1rem;">Evolutionary Line</div>
-            <div class="evo-container" style="justify-content: center; overflow-x: auto; padding-bottom: 1rem; margin-top: 1.5rem;">
+            <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-bottom: 0.5rem;">Evolutionary Line</div>
+            <div class="evo-container" style="justify-content: center; overflow-x: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; margin-top: 0.5rem;">
                 ${evolutionsHTML}
             </div>
         `;
