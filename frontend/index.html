@@ -15,13 +15,13 @@
         <h1>Pokédex Database</h1>
         <p>A beautiful, dynamic index of Pokémon</p>
         <div class="search-container">
-            <div class="search-row">
-                <input type="text" id="searchInput" placeholder="Search by name or ID...">
-                <button id="toggleFiltersBtn" class="toggle-filters-btn">
+            <form class="search-row" id="searchForm">
+                <input type="search" id="searchInput" placeholder="Search by name or ID..." autocomplete="off">
+                <button type="button" id="toggleFiltersBtn" class="toggle-filters-btn">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                     Filters
                 </button>
-            </div>
+            </form>
         </div>
 
         <div id="advancedFilters" class="advanced-filters collapsed">
