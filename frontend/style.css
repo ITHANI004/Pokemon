@@ -100,10 +100,6 @@ header p {
   align-items: center;
   opacity: 0;
   animation: fadeIn 0.6s ease forwards;
-  
-  content-visibility: auto;
-  contain-intrinsic-size: 350px;
-  will-change: transform, opacity;
 }
 
 .pokemon-card:hover {
@@ -510,7 +506,6 @@ header p {
   
   .pokemon-card {
     padding: 1rem;
-    contain-intrinsic-size: 250px;
   }
 
   .poke-name {
