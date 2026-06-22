@@ -32,6 +32,19 @@ const modal = document.getElementById('pokeModal');
 const closeBtn = document.querySelector('.close-btn');
 const modalBody = document.getElementById('modal-body');
 
+// Compare Feature Elements
+let compareModePoke = null;
+const compareBanner = document.getElementById('compareBanner');
+const compareTargetName = document.getElementById('compareTargetName');
+const cancelCompareBtn = document.getElementById('cancelCompareBtn');
+
+if (cancelCompareBtn) {
+    cancelCompareBtn.onclick = () => {
+        compareModePoke = null;
+        compareBanner.style.display = 'none';
+    };
+}
+
 async function fetchPokemon() {
     try {
         const res = await fetch(API_URL);
@@ -188,7 +201,13 @@ function buildAllPokemonCards(pokemonList) {
             </div>
         `;
         
-        card.onclick = () => openModal(poke);
+        card.onclick = () => {
+            if (compareModePoke) {
+                openCompareModal(compareModePoke, poke);
+            } else {
+                openModal(poke);
+            }
+        };
         grid.appendChild(card);
         pokemonCardsMap.set(poke.pokedex_number, card);
     });
@@ -283,22 +302,23 @@ async function openModal(poke) {
     const mainColor = typeColorMap[poke.type_1.toLowerCase()] || '#ffffff';
 
     modalBody.innerHTML = `
-        <div class="modal-body-grid">
+        <div class="modal-header-top" style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="font-size: 2.5rem; font-family: var(--font-heading); margin-bottom: 0.5rem;">${poke.name}</h2>
+            <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
+            <button id="compareBtn" class="compare-btn" style="margin-top: 1.5rem; padding: 0.6rem 2rem; background: ${mainColor}; color: #121212; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: transform 0.2s; font-size: 1rem;">Compare with another Pokémon</button>
+        </div>
+        <div class="modal-body-grid three-col">
             <div class="modal-left">
-                <div class="modal-header" style="flex-direction: column; text-align: center; margin-bottom: 1rem;">
-                    <div class="modal-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); margin: 0 auto 1rem auto; width: 180px; height: 180px;">
-                        <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
-                    </div>
-                    <div class="modal-title">
-                        <h2>${poke.name}</h2>
-                        <div style="color: var(--text-secondary); font-size: 1.2rem;">${displayId} - Generation ${poke.generation}</div>
-                    </div>
-                </div>
-                <div id="modal-lore-area" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center; font-style: italic; color: var(--text-secondary); min-height: 40px; font-size: 0.9rem; line-height: 1.4;">
-                    Loading Pokédex entry...
-                </div>
                 <div id="modal-details-area">
                     <div style="text-align: center; color: ${mainColor}; margin: 2rem; font-weight: bold;">Loading details...</div>
+                </div>
+            </div>
+            <div class="modal-center" style="display: flex; flex-direction: column; align-items: center;">
+                <div class="modal-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); width: 240px; height: 240px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 1.5rem;">
+                    <img class="modal-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.4)); transform: scale(1.1);">
+                </div>
+                <div id="modal-lore-area" style="text-align: center; font-style: italic; color: var(--text-secondary); min-height: 40px; font-size: 1rem; line-height: 1.5; max-width: 320px;">
+                    Loading Pokédex entry...
                 </div>
             </div>
             <div class="modal-right">
@@ -307,10 +327,20 @@ async function openModal(poke) {
                 </div>
             </div>
         </div>
-        <div id="evo-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); min-height: 100px;">
+        <div id="evo-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); min-height: 100px;">
             <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
         </div>
     `;
+
+    document.getElementById('compareBtn').onclick = () => {
+        compareModePoke = poke;
+        modal.classList.remove('show');
+        if (compareTargetName && compareBanner) {
+            compareTargetName.textContent = poke.name;
+            compareBanner.style.display = 'flex';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     try {
         let data;
@@ -335,23 +365,24 @@ async function openModal(poke) {
         
         const detailsArea = document.getElementById('modal-details-area');
         detailsArea.innerHTML = `
-            <div style="display: flex; gap: 1.5rem; justify-content: center; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); width: 100%;">
-                <div style="text-align: center;">
-                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Height</div>
-                    <div style="font-size: 1.2rem; font-weight: bold; color: ${mainColor}">${heightM} m</div>
+            <div style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 1.5rem; box-shadow: inset 0 0 20px rgba(0,0,0,0.2);">
+                <div style="text-align: center; width: 100%;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Height</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: ${mainColor}">${heightM} m</div>
                 </div>
-                <div style="text-align: center;">
-                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Weight</div>
-                    <div style="font-size: 1.2rem; font-weight: bold; color: ${mainColor}">${weightKg} kg</div>
+                <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.05);"></div>
+                <div style="text-align: center; width: 100%;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Weight</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; color: ${mainColor}">${weightKg} kg</div>
                 </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; align-items: center;">
-                <div style="text-align: center; background: rgba(255,255,255,0.05); padding: 1rem 2rem; border-radius: 12px; width: 100%; max-width: 250px;">
-                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Ability</div>
+                <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.05);"></div>
+                <div style="text-align: center; width: 100%;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Ability</div>
                     <div style="font-size: 1.2rem; font-weight: bold; text-transform: capitalize;">${abilityName}</div>
                 </div>
-                <div style="text-align: center; background: rgba(255,255,255,0.05); padding: 1rem 2rem; border-radius: 12px; width: 100%; max-width: 250px;">
-                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Special Attack</div>
+                <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.05);"></div>
+                <div style="text-align: center; width: 100%;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">Special Move</div>
                     <div style="font-size: 1.2rem; font-weight: bold; text-transform: capitalize;">${moveName}</div>
                 </div>
             </div>
@@ -576,6 +607,87 @@ window.onclick = (e) => {
         modal.classList.remove('show');
     }
 };
+
+async function openCompareModal(poke1, poke2) {
+    compareModePoke = null;
+    if (compareBanner) compareBanner.style.display = 'none';
+    modal.classList.add('show');
+    
+    modalBody.innerHTML = `<div style="text-align: center; margin: 3rem; font-size: 1.5rem;">Loading Comparison...</div>`;
+    
+    try {
+        const fetchDetails = async (poke) => {
+            const cacheKey = `poke_${poke.pokedex_number}`;
+            if (pokeApiCache.has(cacheKey)) return pokeApiCache.get(cacheKey);
+            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${poke.pokedex_number}`);
+            const data = await res.json();
+            pokeApiCache.set(cacheKey, data);
+            return data;
+        };
+        
+        const [data1, data2] = await Promise.all([fetchDetails(poke1), fetchDetails(poke2)]);
+        
+        const renderColumn = (poke, data) => {
+            const typeColorMap = {
+                'normal': '#A8A77A', 'fire': '#EE8130', 'water': '#6390F0', 'electric': '#F7D02C',
+                'grass': '#7AC74C', 'ice': '#96D9D6', 'fighting': '#C22E28', 'poison': '#A33EA1',
+                'ground': '#E2BF65', 'flying': '#A98FF3', 'psychic': '#F95587', 'bug': '#A6B91A',
+                'rock': '#B6A136', 'ghost': '#735797', 'dragon': '#6F35FC', 'dark': '#705746',
+                'steel': '#B7B7CE', 'fairy': '#D685AD'
+            };
+            const mainColor = typeColorMap[poke.type_1.toLowerCase()] || '#ffffff';
+            const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
+            
+            return `
+                <div style="display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 20px; border: 1px solid ${mainColor}55;">
+                    <h3 style="font-size: 2rem; font-family: var(--font-heading); margin-bottom: 0.5rem; color: ${mainColor};">${poke.name}</h3>
+                    <div style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1.1rem;">#${poke.pokedex_number.toString().padStart(3, '0')}</div>
+                    
+                    <img src="${poke.sprite_url || '/vite.svg'}" style="width: 180px; height: 180px; object-fit: contain; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5)); margin-bottom: 2rem; transform: scale(1.1);">
+                    
+                    <div style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center; margin-bottom: 2rem;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Height</div>
+                            <div style="font-weight: bold; font-size: 1.2rem;">${data.height/10}m</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.3rem;">Weight</div>
+                            <div style="font-weight: bold; font-size: 1.2rem;">${data.weight/10}kg</div>
+                        </div>
+                    </div>
+                    
+                    <div style="width: 100%; text-align: left; background: rgba(0,0,0,0.15); padding: 1.5rem; border-radius: 12px;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 1rem; font-weight: bold; text-align: center;">Base Stats (Total: ${totalStats})</div>
+                        ${data.stats.map(s => `
+                            <div style="display: flex; align-items: center; margin-bottom: 0.6rem;">
+                                <div style="width: 100px; font-size: 0.85rem; font-weight: 600;">${s.stat.name.replace('-',' ').toUpperCase()}</div>
+                                <div style="flex-grow: 1; background: rgba(255,255,255,0.05); height: 10px; border-radius: 5px; margin: 0 12px; overflow: hidden;">
+                                    <div style="width: ${(s.base_stat/255)*100}%; background: ${mainColor}; height: 100%; border-radius: 5px; box-shadow: 0 0 10px ${mainColor};"></div>
+                                </div>
+                                <div style="width: 35px; text-align: right; font-size: 1rem; font-weight: bold;">${s.base_stat}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        };
+        
+        modalBody.innerHTML = `
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <h2 style="font-size: 2.5rem; font-family: var(--font-heading); margin-bottom: 0.5rem; background: linear-gradient(90deg, #ffcb05, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Head-to-Head Comparison</h2>
+                <div style="color: var(--text-secondary);">Comparing stats and details</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem; align-items: stretch;">
+                ${renderColumn(poke1, data1)}
+                ${renderColumn(poke2, data2)}
+            </div>
+        `;
+        
+    } catch(e) {
+        modalBody.innerHTML = '<div style="color: red; text-align: center; font-size: 1.2rem; margin: 2rem;">Error loading comparison data. Check console.</div>';
+        console.error(e);
+    }
+}
 
 // Initialize
 fetchPokemon();
