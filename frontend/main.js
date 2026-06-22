@@ -335,7 +335,7 @@ async function openModal(poke) {
         
         const detailsArea = document.getElementById('modal-details-area');
         detailsArea.innerHTML = `
-            <div style="display: flex; gap: 3rem; justify-content: center; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); width: 100%;">
+            <div style="display: flex; gap: 1.5rem; justify-content: center; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); width: 100%;">
                 <div style="text-align: center;">
                     <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Height</div>
                     <div style="font-size: 1.2rem; font-weight: bold; color: ${mainColor}">${heightM} m</div>
@@ -497,7 +497,7 @@ async function loadEvolutionTree(poke, data, mainColor) {
 
             const isCurrent = foundPoke.pokedex_number === currentId;
             let html = `
-                <div style="display: flex; align-items: center; justify-content: center;">
+                <div class="evo-node-wrapper" style="display: flex; align-items: center; justify-content: center;">
                     <div class="evo-item ${isCurrent ? 'active' : ''}" data-id="${foundPoke.pokedex_number}" style="${isCurrent ? `border-color: ${mainColor}; box-shadow: 0 0 15px ${mainColor}66;` : ''}">
                         <img src="${foundPoke.sprite_url || '/vite.svg'}" alt="${foundPoke.name}">
                         <span>${foundPoke.name}</span>
