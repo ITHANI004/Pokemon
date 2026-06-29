@@ -15,6 +15,7 @@ let currentSearchTerm = '';
 
 const grid = document.getElementById('pokemon-grid');
 const searchInput = document.getElementById('searchInput');
+const sortSelect = document.getElementById('sortSelect');
 const loading = document.getElementById('loading');
 
 // Filter UI Elements
@@ -131,6 +132,17 @@ function renderTypeFilters() {
 }
 
 function applyFilters() {
+    const sortValue = sortSelect ? sortSelect.value : 'id-asc';
+
+    allPokemon.sort((a, b) => {
+        if (sortValue === 'name-asc') return a.name.localeCompare(b.name);
+        if (sortValue === 'weight-desc') return (b.weight || 0) - (a.weight || 0);
+        if (sortValue === 'height-desc') return (b.height || 0) - (a.height || 0);
+        if (sortValue === 'speed-desc') return (b.speed || 0) - (a.speed || 0);
+        if (sortValue === 'attack-desc') return (b.attack || 0) - (a.attack || 0);
+        return a.pokedex_number - b.pokedex_number;
+    });
+
     allPokemon.forEach(poke => {
         let isVisible = true;
 
@@ -161,6 +173,30 @@ function applyFilters() {
         const card = pokemonCardsMap.get(poke.pokedex_number);
         if (card) {
             card.style.display = isVisible ? '' : 'none';
+            if (isVisible) {
+                let sortBadge = card.querySelector('.poke-sort-badge');
+                if (!sortBadge) {
+                    sortBadge = document.createElement('span');
+                    sortBadge.className = 'trait-badge poke-sort-badge';
+                    sortBadge.style.background = 'rgba(255, 203, 5, 0.2)';
+                    sortBadge.style.color = '#ffcb05';
+                    sortBadge.style.fontWeight = 'bold';
+                    const traitsContainer = card.querySelector('.poke-traits');
+                    if (traitsContainer) traitsContainer.prepend(sortBadge);
+                }
+                if (sortValue === 'weight-desc') sortBadge.textContent = `⚖️ ${poke.weight || 0} kg`;
+                else if (sortValue === 'height-desc') sortBadge.textContent = `📏 ${poke.height || 0} m`;
+                else if (sortValue === 'speed-desc') sortBadge.textContent = `⚡ Spd: ${poke.speed || 0}`;
+                else if (sortValue === 'attack-desc') sortBadge.textContent = `⚔️ Atk: ${poke.attack || 0}`;
+                
+                if (['weight-desc', 'height-desc', 'speed-desc', 'attack-desc'].includes(sortValue)) {
+                    sortBadge.style.display = 'inline-block';
+                } else if (sortBadge) {
+                    sortBadge.style.display = 'none';
+                }
+
+                grid.appendChild(card);
+            }
         }
     });
 }
@@ -221,6 +257,12 @@ searchInput.addEventListener('input', (e) => {
         applyFilters();
     }, 250);
 });
+
+if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+        applyFilters();
+    });
+}
 
 // Mobile Keyboard Fix: Prevent page reload on Enter and dismiss keyboard
 const searchForm = document.getElementById('searchForm');
