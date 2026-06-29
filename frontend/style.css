@@ -26,7 +26,8 @@ body {
 }
 
 #app {
-  max-width: 1200px;
+  width: 94%;
+  max-width: 2400px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -260,7 +261,7 @@ header p {
 }
 
 .advanced-filters {
-  max-width: 800px;
+  max-width: 1050px;
   margin: 1.5rem auto 0 auto;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -405,7 +406,7 @@ header p {
   border-radius: 24px;
   padding: 2.5rem;
   width: 95%;
-  max-width: 900px;
+  max-width: 1050px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
