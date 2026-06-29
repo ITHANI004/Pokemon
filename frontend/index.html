@@ -30,6 +30,9 @@
                     Filters
                 </button>
             </form>
+            <div class="quick-actions-bar">
+                <button type="button" id="toggleFormsBtn" class="action-btn">Show All Pokémon (Forms & Megas)</button>
+            </div>
         </div>
 
         <div id="advancedFilters" class="advanced-filters collapsed">
@@ -83,7 +86,21 @@
       </main>
       
       <div id="loading" class="loading">Loading Pokémon Database...</div>
+
+      <!-- Pagination Controls -->
+      <div id="paginationContainer" class="pagination-container" style="display: none;">
+          <button id="prevPageBtn" class="page-btn disabled">Previous</button>
+          <div class="page-info">
+              <span id="pageIndicator">Page 1 of 1</span>
+          </div>
+          <button id="nextPageBtn" class="page-btn">Next</button>
+      </div>
     </div>
+
+    <!-- Floating Back to Top Button -->
+    <button id="backToTopBtn" class="back-to-top" title="Go to top" aria-label="Back to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
 
     <!-- Modal for Pokemon Details -->
     <div id="pokeModal" class="modal">

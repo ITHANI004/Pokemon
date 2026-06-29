@@ -13,9 +13,19 @@ let showMegaOnly = false;
 let showRegionalOnly = false;
 let currentSearchTerm = '';
 
+let showAllForms = false;
+let currentPage = 1;
+const itemsPerPage = 60;
+
 const grid = document.getElementById('pokemon-grid');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
+const toggleFormsBtn = document.getElementById('toggleFormsBtn');
+const paginationContainer = document.getElementById('paginationContainer');
+const prevPageBtn = document.getElementById('prevPageBtn');
+const nextPageBtn = document.getElementById('nextPageBtn');
+const pageIndicator = document.getElementById('pageIndicator');
+const backToTopBtn = document.getElementById('backToTopBtn');
 const loading = document.getElementById('loading');
 
 // Filter UI Elements
@@ -131,10 +141,50 @@ function renderTypeFilters() {
     });
 }
 
-function applyFilters() {
+function isAlternateForm(poke) {
+    if (poke.pokedex_number > 1025) return true;
+    if (poke.is_mega || poke.is_regionalform) return true;
+    const name = poke.name.toLowerCase();
+    return name.includes('-mega') || name.includes('-gmax') || name.includes('-alola') || name.includes('-galar') || name.includes('-hisui') || name.includes('-paldea');
+}
+
+function applyFilters(resetPage = true) {
+    if (resetPage) currentPage = 1;
     const sortValue = sortSelect ? sortSelect.value : 'id-asc';
 
-    allPokemon.sort((a, b) => {
+    const filteredPokemon = allPokemon.filter(poke => {
+        if (!showAllForms && !showMegaOnly && !showRegionalOnly) {
+            if (isAlternateForm(poke)) return false;
+        }
+
+        // 1. Text Search
+        if (currentSearchTerm) {
+            const nameMatch = poke.name.toLowerCase().includes(currentSearchTerm);
+            const idMatch = poke.pokedex_number.toString().includes(currentSearchTerm);
+            if (!nameMatch && !idMatch) return false;
+        }
+
+        // 2. Multi-Type Filter (AND logic for types)
+        if (activeTypes.size > 0) {
+            const pokeTypes = [poke.type_1, poke.type_2].filter(Boolean);
+            if (!Array.from(activeTypes).every(t => pokeTypes.includes(t))) return false;
+        }
+
+        // 3. Multi-Generation Filter (OR logic for gens)
+        if (activeGens.size > 0) {
+            if (!activeGens.has(poke.generation)) return false;
+        }
+
+        // 4. Legendary/Mythical Filter
+        if (showLegendaryOnly && !poke.is_legendary) return false;
+        if (showMythicalOnly && !poke.is_mythical) return false;
+        if (showMegaOnly && !poke.is_mega) return false;
+        if (showRegionalOnly && !poke.is_regionalform) return false;
+
+        return true;
+    });
+
+    filteredPokemon.sort((a, b) => {
         if (sortValue === 'name-asc') return a.name.localeCompare(b.name);
         if (sortValue === 'weight-desc') return (b.weight || 0) - (a.weight || 0);
         if (sortValue === 'height-desc') return (b.height || 0) - (a.height || 0);
@@ -143,62 +193,55 @@ function applyFilters() {
         return a.pokedex_number - b.pokedex_number;
     });
 
-    allPokemon.forEach((poke, idx) => {
-        let isVisible = true;
+    pokemonCardsMap.forEach(card => {
+        card.style.display = 'none';
+    });
 
-        // 1. Text Search
-        if (currentSearchTerm) {
-            const nameMatch = poke.name.toLowerCase().includes(currentSearchTerm);
-            const idMatch = poke.pokedex_number.toString().includes(currentSearchTerm);
-            if (!nameMatch && !idMatch) isVisible = false;
-        }
+    const totalPages = Math.max(1, Math.ceil(filteredPokemon.length / itemsPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
 
-        // 2. Multi-Type Filter (AND logic for types)
-        if (isVisible && activeTypes.size > 0) {
-            const pokeTypes = [poke.type_1, poke.type_2].filter(Boolean);
-            if (!Array.from(activeTypes).every(t => pokeTypes.includes(t))) isVisible = false;
-        }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const pageItems = filteredPokemon.slice(startIndex, startIndex + itemsPerPage);
 
-        // 3. Multi-Generation Filter (OR logic for gens)
-        if (isVisible && activeGens.size > 0) {
-            if (!activeGens.has(poke.generation)) isVisible = false;
-        }
-
-        // 4. Legendary/Mythical Filter
-        if (isVisible && showLegendaryOnly && !poke.is_legendary) isVisible = false;
-        if (isVisible && showMythicalOnly && !poke.is_mythical) isVisible = false;
-        if (isVisible && showMegaOnly && !poke.is_mega) isVisible = false;
-        if (isVisible && showRegionalOnly && !poke.is_regionalform) isVisible = false;
-
+    pageItems.forEach((poke, idx) => {
         const card = pokemonCardsMap.get(poke.pokedex_number);
         if (card) {
-            card.style.display = isVisible ? '' : 'none';
-            if (isVisible) {
-                card.style.order = idx;
+            card.style.display = '';
+            card.style.order = idx;
 
-                let sortBadge = card.querySelector('.poke-sort-badge');
-                if (!sortBadge) {
-                    sortBadge = document.createElement('span');
-                    sortBadge.className = 'trait-badge poke-sort-badge';
-                    sortBadge.style.background = 'rgba(255, 203, 5, 0.2)';
-                    sortBadge.style.color = '#ffcb05';
-                    sortBadge.style.fontWeight = 'bold';
-                    const traitsContainer = card.querySelector('.poke-traits');
-                    if (traitsContainer) traitsContainer.prepend(sortBadge);
-                }
-                if (sortValue === 'weight-desc') sortBadge.textContent = `Weight: ${poke.weight || 0} kg`;
-                else if (sortValue === 'height-desc') sortBadge.textContent = `Height: ${poke.height || 0} m`;
-                else if (sortValue === 'speed-desc') sortBadge.textContent = `Speed: ${poke.speed || 0}`;
-                else if (sortValue === 'attack-desc') sortBadge.textContent = `Attack: ${poke.attack || 0}`;
-                
-                if (['weight-desc', 'height-desc', 'speed-desc', 'attack-desc'].includes(sortValue)) {
-                    sortBadge.style.display = 'inline-block';
-                } else if (sortBadge) {
-                    sortBadge.style.display = 'none';
-                }
+            let sortBadge = card.querySelector('.poke-sort-badge');
+            if (!sortBadge) {
+                sortBadge = document.createElement('span');
+                sortBadge.className = 'trait-badge poke-sort-badge';
+                sortBadge.style.background = 'rgba(255, 203, 5, 0.2)';
+                sortBadge.style.color = '#ffcb05';
+                sortBadge.style.fontWeight = 'bold';
+                const traitsContainer = card.querySelector('.poke-traits');
+                if (traitsContainer) traitsContainer.prepend(sortBadge);
+            }
+            if (sortValue === 'weight-desc') sortBadge.textContent = `Weight: ${poke.weight || 0} kg`;
+            else if (sortValue === 'height-desc') sortBadge.textContent = `Height: ${poke.height || 0} m`;
+            else if (sortValue === 'speed-desc') sortBadge.textContent = `Speed: ${poke.speed || 0}`;
+            else if (sortValue === 'attack-desc') sortBadge.textContent = `Attack: ${poke.attack || 0}`;
+            
+            if (['weight-desc', 'height-desc', 'speed-desc', 'attack-desc'].includes(sortValue)) {
+                sortBadge.style.display = 'inline-block';
+            } else if (sortBadge) {
+                sortBadge.style.display = 'none';
             }
         }
     });
+
+    if (paginationContainer) {
+        if (filteredPokemon.length > 0) {
+            paginationContainer.style.display = 'flex';
+            if (pageIndicator) pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+            if (prevPageBtn) prevPageBtn.classList.toggle('disabled', currentPage === 1);
+            if (nextPageBtn) nextPageBtn.classList.toggle('disabled', currentPage === totalPages);
+        } else {
+            paginationContainer.style.display = 'none';
+        }
+    }
 }
 
 function buildAllPokemonCards(pokemonList) {
@@ -262,6 +305,52 @@ if (sortSelect) {
     sortSelect.addEventListener('change', () => {
         applyFilters();
     });
+}
+
+if (toggleFormsBtn) {
+    toggleFormsBtn.onclick = () => {
+        showAllForms = !showAllForms;
+        toggleFormsBtn.classList.toggle('active', showAllForms);
+        toggleFormsBtn.textContent = showAllForms ? 'Hide Alternate Forms (Base Only)' : 'Show All Pokémon (Forms & Megas)';
+        applyFilters();
+    };
+}
+
+if (prevPageBtn) {
+    prevPageBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            applyFilters(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+}
+
+if (nextPageBtn) {
+    nextPageBtn.onclick = () => {
+        nextPageBtn.blur();
+        if (!nextPageBtn.classList.contains('disabled')) {
+            currentPage++;
+            applyFilters(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+}
+
+window.addEventListener('scroll', () => {
+    if (backToTopBtn) {
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.add('visible');
+        } else {
+            backToTopBtn.classList.remove('visible');
+        }
+    }
+});
+
+if (backToTopBtn) {
+    backToTopBtn.onclick = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 }
 
 // Mobile Keyboard Fix: Prevent page reload on Enter and dismiss keyboard
