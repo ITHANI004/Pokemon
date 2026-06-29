@@ -143,7 +143,7 @@ function applyFilters() {
         return a.pokedex_number - b.pokedex_number;
     });
 
-    allPokemon.forEach(poke => {
+    allPokemon.forEach((poke, idx) => {
         let isVisible = true;
 
         // 1. Text Search
@@ -174,6 +174,8 @@ function applyFilters() {
         if (card) {
             card.style.display = isVisible ? '' : 'none';
             if (isVisible) {
+                card.style.order = idx;
+
                 let sortBadge = card.querySelector('.poke-sort-badge');
                 if (!sortBadge) {
                     sortBadge = document.createElement('span');
@@ -184,18 +186,16 @@ function applyFilters() {
                     const traitsContainer = card.querySelector('.poke-traits');
                     if (traitsContainer) traitsContainer.prepend(sortBadge);
                 }
-                if (sortValue === 'weight-desc') sortBadge.textContent = `⚖️ ${poke.weight || 0} kg`;
-                else if (sortValue === 'height-desc') sortBadge.textContent = `📏 ${poke.height || 0} m`;
-                else if (sortValue === 'speed-desc') sortBadge.textContent = `⚡ Spd: ${poke.speed || 0}`;
-                else if (sortValue === 'attack-desc') sortBadge.textContent = `⚔️ Atk: ${poke.attack || 0}`;
+                if (sortValue === 'weight-desc') sortBadge.textContent = `Weight: ${poke.weight || 0} kg`;
+                else if (sortValue === 'height-desc') sortBadge.textContent = `Height: ${poke.height || 0} m`;
+                else if (sortValue === 'speed-desc') sortBadge.textContent = `Speed: ${poke.speed || 0}`;
+                else if (sortValue === 'attack-desc') sortBadge.textContent = `Attack: ${poke.attack || 0}`;
                 
                 if (['weight-desc', 'height-desc', 'speed-desc', 'attack-desc'].includes(sortValue)) {
                     sortBadge.style.display = 'inline-block';
                 } else if (sortBadge) {
                     sortBadge.style.display = 'none';
                 }
-
-                grid.appendChild(card);
             }
         }
     });
