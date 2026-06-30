@@ -425,15 +425,28 @@ function generateAndShareCard(poke, data, mainColor) {
     ctx.font = '900 54px sans-serif';
     ctx.fillText(poke.name.toUpperCase(), 70, 165);
 
-    // Type Badge
+    // Type Badges (Supports dual types)
     ctx.fillStyle = mainColor;
     ctx.beginPath();
-    ctx.roundRect(70, 190, 150, 40, 20);
+    ctx.roundRect(70, 190, 135, 38, 19);
     ctx.fill();
 
     ctx.fillStyle = '#121212';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText(poke.type_1.toUpperCase(), 95, 216);
+    ctx.font = 'bold 17px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(poke.type_1.toUpperCase(), 137, 215);
+
+    if (poke.type_2) {
+        const type2Color = typeColorMap[poke.type_2.toLowerCase()] || '#888888';
+        ctx.fillStyle = type2Color;
+        ctx.beginPath();
+        ctx.roundRect(218, 190, 135, 38, 19);
+        ctx.fill();
+
+        ctx.fillStyle = '#121212';
+        ctx.fillText(poke.type_2.toUpperCase(), 285, 215);
+    }
+    ctx.textAlign = 'left';
 
     // Sprite
     const img = new Image();
