@@ -65,14 +65,14 @@ export async function openModal(poke, pushToHistory = true) {
     const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
     const mainColor = typeColorMap[poke.type_1.toLowerCase()] || '#ffffff';
 
-    let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}" style="font-size: 1rem; padding: 0.5rem 1.2rem;">${poke.type_1}</span>`;
+    let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}" style="font-size: 0.95rem; padding: 0.45rem 1.2rem;">${poke.type_1}</span>`;
     if (poke.type_2) {
-        typesHTML += `<span class="type-badge type-${poke.type_2.toLowerCase()}" style="font-size: 1rem; padding: 0.5rem 1.2rem;">${poke.type_2}</span>`;
+        typesHTML += `<span class="type-badge type-${poke.type_2.toLowerCase()}" style="font-size: 0.95rem; padding: 0.45rem 1.2rem;">${poke.type_2}</span>`;
     }
 
     detailView.innerHTML = `
-        <div class="detail-top-nav" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
-            <button id="backToGridBtn" class="back-nav-btn" style="margin-bottom: 0;">
+        <div class="detail-top-nav">
+            <button id="backToGridBtn" class="back-nav-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 <span>Back to Pokédex</span>
             </button>
@@ -85,64 +85,71 @@ export async function openModal(poke, pushToHistory = true) {
             </div>
         </div>
 
-        <div class="detail-page-container" style="border-color: ${mainColor}55; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
-            <!-- Full Width Hero Section -->
-            <div class="detail-hero" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2.5rem;">
-                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem; letter-spacing: 2px;">${displayId}</div>
-                <h1 style="font-size: 3.8rem; font-family: var(--font-heading); margin-bottom: 1.2rem; color: #fff; text-shadow: 0 0 30px ${mainColor}55;">${poke.name}</h1>
-                <div style="display: flex; justify-content: center; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem;">
+        <!-- Luxury Hero Banner Card -->
+        <div class="detail-hero-banner" style="border-color: ${mainColor}55; background: radial-gradient(circle at 80% 50%, ${mainColor}33 0%, rgba(20,20,20,0.85) 65%);">
+            <div class="detail-hero-info">
+                <div class="detail-id-tag">${displayId}</div>
+                <h1 class="detail-title" style="text-shadow: 0 0 30px ${mainColor}66;">${poke.name}</h1>
+                <div class="detail-badges-row">
                     ${typesHTML}
-                    <span class="trait-badge" style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.5rem 1.2rem; font-size: 0.95rem;">Generation ${poke.generation}</span>
+                    <span class="trait-badge" style="background: rgba(255,255,255,0.12); color: #fff; padding: 0.5rem 1.2rem; font-size: 0.95rem; border-radius: 50px;">Generation ${poke.generation}</span>
                 </div>
-                <div class="detail-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 1.8rem;">
-                    <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}" style="width: 95%; height: 95%; object-fit: contain; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.6));">
-                </div>
-                <div id="modal-lore-area" style="text-align: center; font-style: italic; color: var(--text-secondary); font-size: 1.08rem; line-height: 1.6; max-width: 480px; background: rgba(0,0,0,0.25); padding: 1.2rem 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div id="modal-lore-area" class="detail-lore-box">
                     Loading Pokédex entry...
                 </div>
             </div>
-
-            <!-- Mobile Stacked Tabs Bar -->
-            <div class="detail-tab-bar">
-                <button class="detail-tab-btn active" data-tab="stats">Stats</button>
-                <button class="detail-tab-btn" data-tab="combat">Combat</button>
-                <button class="detail-tab-btn" data-tab="evo">Evolutions</button>
+            <div class="detail-hero-artwork">
+                <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
             </div>
+        </div>
 
-            <div class="modal-body-grid three-col" style="gap: 3rem; align-items: start;">
-                <div class="modal-left">
-                    <div id="modal-details-area">
-                        <div style="text-align: center; color: ${mainColor}; padding: 2rem; font-weight: bold;">Loading details...</div>
-                    </div>
-                </div>
-                <div class="modal-right">
-                    <div id="modal-chart-area">
-                        <div style="text-align: center; color: ${mainColor}; padding: 2rem; font-weight: bold;">Fetching advanced stats...</div>
-                    </div>
+        <!-- Mobile Tab Switcher -->
+        <div class="detail-tab-bar">
+            <button class="detail-tab-btn active" data-tab="stats">Stats Profile</button>
+            <button class="detail-tab-btn" data-tab="combat">Combat Chart</button>
+            <button class="detail-tab-btn" data-tab="evo">Evolutions</button>
+        </div>
+
+        <!-- 2-Column Dashboard Grid -->
+        <div class="detail-dashboard-grid">
+            <div id="card-stats" class="detail-card" style="border-color: rgba(255,255,255,0.08);">
+                <div class="detail-card-header">Physical Profile & Abilities</div>
+                <div id="modal-details-area">
+                    <div style="text-align: center; color: ${mainColor}; padding: 3rem 0; font-weight: bold;">Loading profile...</div>
                 </div>
             </div>
+            <div id="card-combat" class="detail-card" style="border-color: rgba(255,255,255,0.08);">
+                <div class="detail-card-header">Combat Analysis & Stats</div>
+                <div id="modal-chart-area">
+                    <div style="text-align: center; color: ${mainColor}; padding: 3rem 0; font-weight: bold;">Fetching advanced stats...</div>
+                </div>
+            </div>
+        </div>
 
-            <div id="evo-section" style="margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
+        <!-- Evolutionary Chain Card -->
+        <div id="card-evo" class="detail-card" style="border-color: rgba(255,255,255,0.08);">
+            <div class="detail-card-header">Evolutionary Chain</div>
+            <div id="evo-section">
+                <div style="text-align: center; color: var(--text-secondary); padding: 2rem 0; font-size: 0.95rem;">Loading evolutionary line...</div>
             </div>
         </div>
     `;
 
     // Initialize Mobile Tab Switcher
     const tabBtns = detailView.querySelectorAll('.detail-tab-btn');
-    const modalLeft = detailView.querySelector('.modal-left');
-    const modalRight = detailView.querySelector('.modal-right');
-    const evoSection = detailView.querySelector('#evo-section');
+    const cardStats = detailView.querySelector('#card-stats');
+    const cardCombat = detailView.querySelector('#card-combat');
+    const cardEvo = detailView.querySelector('#card-evo');
 
     const updateTabVisibility = (selectedTab) => {
         if (window.innerWidth <= 768) {
-            if (modalLeft) modalLeft.classList.toggle('tab-content-hidden', selectedTab !== 'stats');
-            if (modalRight) modalRight.classList.toggle('tab-content-hidden', selectedTab !== 'combat');
-            if (evoSection) evoSection.classList.toggle('tab-content-hidden', selectedTab !== 'evo');
+            if (cardStats) cardStats.classList.toggle('tab-content-hidden', selectedTab !== 'stats');
+            if (cardCombat) cardCombat.classList.toggle('tab-content-hidden', selectedTab !== 'combat');
+            if (cardEvo) cardEvo.classList.toggle('tab-content-hidden', selectedTab !== 'evo');
         } else {
-            if (modalLeft) modalLeft.classList.remove('tab-content-hidden');
-            if (modalRight) modalRight.classList.remove('tab-content-hidden');
-            if (evoSection) evoSection.classList.remove('tab-content-hidden');
+            if (cardStats) cardStats.classList.remove('tab-content-hidden');
+            if (cardCombat) cardCombat.classList.remove('tab-content-hidden');
+            if (cardEvo) cardEvo.classList.remove('tab-content-hidden');
         }
     };
 
@@ -224,25 +231,22 @@ export async function openModal(poke, pushToHistory = true) {
         const detailsArea = document.getElementById('modal-details-area');
         if (detailsArea) {
             detailsArea.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; background: rgba(0,0,0,0.25); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 20px rgba(0,0,0,0.3);">
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Height</div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: ${mainColor}">${heightM} m</div>
+                <div class="stats-profile-grid">
+                    <div class="stat-profile-item">
+                        <div class="stat-profile-label">Height</div>
+                        <div class="stat-profile-val" style="color: ${mainColor}">${heightM} m</div>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Weight</div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: ${mainColor}">${weightKg} kg</div>
+                    <div class="stat-profile-item">
+                        <div class="stat-profile-label">Weight</div>
+                        <div class="stat-profile-val" style="color: ${mainColor}">${weightKg} kg</div>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Ability</div>
-                        <div style="font-size: 1.3rem; font-weight: bold; text-transform: capitalize;">${abilityName}</div>
+                    <div class="stat-profile-item">
+                        <div class="stat-profile-label">Primary Ability</div>
+                        <div class="stat-profile-val" style="text-transform: capitalize;">${abilityName}</div>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Special Move</div>
-                        <div style="font-size: 1.3rem; font-weight: bold; text-transform: capitalize;">${moveName}</div>
+                    <div class="stat-profile-item">
+                        <div class="stat-profile-label">Signature Move</div>
+                        <div class="stat-profile-val" style="text-transform: capitalize;">${moveName}</div>
                     </div>
                 </div>
             `;
@@ -251,31 +255,31 @@ export async function openModal(poke, pushToHistory = true) {
         const effectiveness = getTypeEffectiveness(poke.type_1, poke.type_2);
         let weaknessHTML = '';
         effectiveness.weak.forEach(w => {
-            weaknessHTML += `<span class="type-badge type-${w.type}" style="font-size: 0.75rem; margin: 0.2rem; padding: 0.3rem 0.6rem;">${w.type} ${w.mult}x</span>`;
+            weaknessHTML += `<span class="type-badge type-${w.type}" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">${w.type} ${w.mult}x</span>`;
         });
         let resistHTML = '';
         effectiveness.resist.forEach(r => {
-            resistHTML += `<span class="type-badge type-${r.type}" style="font-size: 0.75rem; margin: 0.2rem; opacity: 0.8; padding: 0.3rem 0.6rem;">${r.type} ${r.mult}x</span>`;
+            resistHTML += `<span class="type-badge type-${r.type}" style="font-size: 0.75rem; opacity: 0.85; padding: 0.3rem 0.65rem;">${r.type} ${r.mult}x</span>`;
         });
         effectiveness.immune.forEach(i => {
-            resistHTML += `<span class="type-badge type-${i}" style="font-size: 0.75rem; margin: 0.2rem; opacity: 0.5; padding: 0.3rem 0.6rem;">${i} 0x</span>`;
+            resistHTML += `<span class="type-badge type-${i}" style="font-size: 0.75rem; opacity: 0.6; padding: 0.3rem 0.65rem;">${i} 0x</span>`;
         });
         if (!resistHTML) resistHTML = '<span style="color:var(--text-secondary); font-size: 0.85rem;">None</span>';
 
         const chartArea = document.getElementById('modal-chart-area');
         if (chartArea) {
             chartArea.innerHTML = `
-                <div style="width: 100%; max-width: 350px; position: relative; margin: 0 auto;">
+                <div style="width: 100%; max-width: 310px; position: relative; margin: 0 auto 1.5rem auto;">
                     <canvas id="statChart"></canvas>
                 </div>
-                <div style="margin-top: 1.5rem; background: rgba(0,0,0,0.25); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="background: rgba(0,0,0,0.25); border-radius: 18px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
                     <div style="margin-bottom: 1.2rem;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: bold; letter-spacing: 1px;">Weaknesses</div>
-                        <div style="display: flex; flex-wrap: wrap;">${weaknessHTML}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; letter-spacing: 1px;">Weaknesses</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">${weaknessHTML}</div>
                     </div>
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: bold; letter-spacing: 1px;">Resistances & Immunities</div>
-                        <div style="display: flex; flex-wrap: wrap;">${resistHTML}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; letter-spacing: 1px;">Resistances & Immunities</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem;">${resistHTML}</div>
                     </div>
                 </div>
             `;
