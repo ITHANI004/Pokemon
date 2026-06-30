@@ -978,43 +978,27 @@ header p {
 /* Mobile Grid Optimization */
 @media (max-width: 600px) {
   .pokemon-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
   }
   .pokemon-card {
-    padding: 0.9rem 0.5rem !important;
+    padding: 1rem 0.5rem !important;
     border-radius: 16px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: space-between !important;
   }
   .poke-img-container {
-    width: 105px !important;
-    height: 105px !important;
-    margin: 0.4rem 0 !important;
+    width: 100px !important;
+    height: 100px !important;
   }
   .poke-img {
-    width: 95px !important;
-    height: 95px !important;
+    width: 90px !important;
+    height: 90px !important;
   }
   .poke-name {
     font-size: 1rem !important;
-    margin: 0.3rem 0 !important;
-    word-break: break-word;
-  }
-  .poke-types {
-    gap: 0.3rem !important;
-    margin-bottom: 0.5rem !important;
-  }
-  .type-badge {
-    font-size: 0.68rem !important;
-    padding: 0.2rem 0.55rem !important;
   }
   .poke-id {
-    font-size: 0.78rem !important;
-    top: 8px !important;
+    font-size: 0.8rem !important;
+    top: 10px !important;
     left: 10px !important;
   }
 }
@@ -1201,11 +1185,6 @@ header p {
   font-weight: 800;
 }
 
-/* Mobile Tab Switcher */
-.detail-tab-bar {
-  display: none;
-}
-
 @media (max-width: 900px) {
   .detail-hero-banner {
     grid-template-columns: 1fr;
@@ -1239,37 +1218,6 @@ header p {
   .detail-card {
     padding: 1.6rem;
     border-radius: 22px;
-  }
-  .detail-tab-bar {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.35);
-    padding: 0.45rem;
-    border-radius: 50px;
-    margin-bottom: 1.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .detail-tab-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    padding: 0.7rem 0.4rem;
-    border-radius: 40px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .detail-tab-btn.active {
-    background: var(--accent);
-    color: #121212;
-    box-shadow: 0 0 15px rgba(255, 203, 5, 0.35);
-  }
-  .tab-content-hidden {
-    display: none !important;
   }
 }
 

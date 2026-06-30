@@ -10,6 +10,19 @@ export function setupCompareBanner() {
             compareBanner.style.display = 'none';
         };
     }
+
+    const modal = document.getElementById('pokeModal');
+    const closeBtn = document.querySelector('#pokeModal .close-btn');
+    if (closeBtn && modal) {
+        closeBtn.onclick = () => {
+            modal.classList.remove('show');
+        };
+    }
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
 }
 
 export async function openCompareModal(poke1, poke2) {
