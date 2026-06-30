@@ -86,27 +86,33 @@ export async function openModal(poke, pushToHistory = true) {
         </div>
 
         <div class="detail-page-container" style="border-color: ${mainColor}55; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
-            <div class="detail-header" style="text-align: center; margin-bottom: 3rem;">
-                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 2px;">${displayId}</div>
+            <!-- Full Width Hero Section -->
+            <div class="detail-hero" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2.5rem;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem; letter-spacing: 2px;">${displayId}</div>
                 <h1 style="font-size: 3.8rem; font-family: var(--font-heading); margin-bottom: 1.2rem; color: #fff; text-shadow: 0 0 30px ${mainColor}55;">${poke.name}</h1>
-                <div style="display: flex; justify-content: center; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: center; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem;">
                     ${typesHTML}
                     <span class="trait-badge" style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.5rem 1.2rem; font-size: 0.95rem;">Generation ${poke.generation}</span>
                 </div>
+                <div class="detail-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 1.8rem;">
+                    <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}" style="width: 95%; height: 95%; object-fit: contain; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.6));">
+                </div>
+                <div id="modal-lore-area" style="text-align: center; font-style: italic; color: var(--text-secondary); font-size: 1.08rem; line-height: 1.6; max-width: 480px; background: rgba(0,0,0,0.25); padding: 1.2rem 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                    Loading Pokédex entry...
+                </div>
             </div>
 
-            <div class="modal-body-grid three-col" style="gap: 3rem; align-items: center;">
+            <!-- Mobile Stacked Tabs Bar -->
+            <div class="detail-tab-bar">
+                <button class="detail-tab-btn active" data-tab="stats">Stats</button>
+                <button class="detail-tab-btn" data-tab="combat">Combat</button>
+                <button class="detail-tab-btn" data-tab="evo">Evolutions</button>
+            </div>
+
+            <div class="modal-body-grid three-col" style="gap: 3rem; align-items: start;">
                 <div class="modal-left">
                     <div id="modal-details-area">
                         <div style="text-align: center; color: ${mainColor}; padding: 2rem; font-weight: bold;">Loading details...</div>
-                    </div>
-                </div>
-                <div class="modal-center" style="display: flex; flex-direction: column; align-items: center;">
-                    <div class="detail-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 2rem;">
-                        <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}" style="width: 95%; height: 95%; object-fit: contain; filter: drop-shadow(0 20px 25px rgba(0,0,0,0.6));">
-                    </div>
-                    <div id="modal-lore-area" style="text-align: center; font-style: italic; color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; max-width: 360px; background: rgba(0,0,0,0.25); padding: 1.2rem 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
-                        Loading Pokédex entry...
                     </div>
                 </div>
                 <div class="modal-right">
@@ -116,11 +122,46 @@ export async function openModal(poke, pushToHistory = true) {
                 </div>
             </div>
 
-            <div id="evo-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div id="evo-section" style="margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
                 <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
             </div>
         </div>
     `;
+
+    // Initialize Mobile Tab Switcher
+    const tabBtns = detailView.querySelectorAll('.detail-tab-btn');
+    const modalLeft = detailView.querySelector('.modal-left');
+    const modalRight = detailView.querySelector('.modal-right');
+    const evoSection = detailView.querySelector('#evo-section');
+
+    const updateTabVisibility = (selectedTab) => {
+        if (window.innerWidth <= 768) {
+            if (modalLeft) modalLeft.classList.toggle('tab-content-hidden', selectedTab !== 'stats');
+            if (modalRight) modalRight.classList.toggle('tab-content-hidden', selectedTab !== 'combat');
+            if (evoSection) evoSection.classList.toggle('tab-content-hidden', selectedTab !== 'evo');
+        } else {
+            if (modalLeft) modalLeft.classList.remove('tab-content-hidden');
+            if (modalRight) modalRight.classList.remove('tab-content-hidden');
+            if (evoSection) evoSection.classList.remove('tab-content-hidden');
+        }
+    };
+
+    if (window.innerWidth <= 768) {
+        updateTabVisibility('stats');
+    }
+
+    tabBtns.forEach(btn => {
+        btn.onclick = () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateTabVisibility(btn.getAttribute('data-tab'));
+        };
+    });
+
+    window.addEventListener('resize', () => {
+        const activeTab = detailView.querySelector('.detail-tab-btn.active');
+        updateTabVisibility(activeTab ? activeTab.getAttribute('data-tab') : 'stats');
+    });
 
     const backToGridBtn = document.getElementById('backToGridBtn');
     if (backToGridBtn) {
