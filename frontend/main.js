@@ -2,7 +2,7 @@ import './style.css';
 import { state } from './modules/state.js';
 import { buildAllPokemonCards, setupPaginationListeners } from './modules/cards.js';
 import { applyFilters, renderTypeFilters, setupFilterListeners, setupSearchAndSort } from './modules/filters.js';
-import { setupModalListeners, openModal, showPokedexView } from './modules/modal.js';
+import { setupModalListeners, handleRoute } from './modules/modal.js';
 import { setupCompareBanner } from './modules/compare.js';
 
 const API_URL = '/pokemon.json';
@@ -21,11 +21,7 @@ async function fetchPokemon() {
         buildAllPokemonCards(state.allPokemon);
         applyFilters();
 
-        if (window.location.hash && window.location.hash.startsWith('#pokemon-')) {
-            const id = parseInt(window.location.hash.replace('#pokemon-', ''));
-            const poke = state.allPokemon.find(p => p.pokedex_number === id);
-            if (poke) openModal(poke, false);
-        }
+        handleRoute(false);
     } catch (err) {
         if (loading) {
             loading.textContent = 'Error connecting to backend database. Make sure Flask is running!';
@@ -38,16 +34,6 @@ function setupGlobalListeners() {
     setupModalListeners();
     setupCompareBanner();
     setupPaginationListeners((resetPage) => applyFilters(resetPage));
-
-    window.addEventListener('popstate', () => {
-        if (!window.location.hash || !window.location.hash.startsWith('#pokemon-')) {
-            showPokedexView(false);
-        } else {
-            const id = parseInt(window.location.hash.replace('#pokemon-', ''));
-            const poke = state.allPokemon.find(p => p.pokedex_number === id);
-            if (poke) openModal(poke, false);
-        }
-    });
 
     const backToTopBtn = document.getElementById('backToTopBtn');
     window.addEventListener('scroll', () => {
