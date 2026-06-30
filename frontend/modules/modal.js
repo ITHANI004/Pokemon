@@ -90,14 +90,23 @@ export async function openModal(poke, pushToHistory = true) {
 
         <!-- Main 3-Column Hero Grid -->
         <div class="detail-main-grid">
-            <!-- Left Column: Pokédex Profile & Bio -->
-            <div class="detail-info-card" style="border-color: ${mainColor}44;">
-                <div class="card-section-title">Pokédex Data & Profile</div>
-                <div id="modal-details-area">
-                    <div style="text-align: center; color: ${mainColor}; padding: 2rem 0;">Loading profile...</div>
+            <!-- Left Column: Pokédex Profile & Bio + Export Image Card -->
+            <div class="detail-info-card" style="border-color: ${mainColor}44; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-section-title">Pokédex Data & Profile</div>
+                    <div id="modal-details-area">
+                        <div style="text-align: center; color: ${mainColor}; padding: 2rem 0;">Loading profile...</div>
+                    </div>
+                    <div id="modal-lore-area" class="detail-lore-entry">
+                        Loading Pokédex entry...
+                    </div>
                 </div>
-                <div id="modal-lore-area" class="detail-lore-entry">
-                    Loading Pokédex entry...
+                <div id="export-card-area" style="margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.8rem; font-weight: 700; letter-spacing: 1px;">Share & Export</div>
+                    <button id="downloadCardBtn" class="export-card-btn" style="background: ${mainColor}; color: #121212;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span id="downloadCardBtnText">Share as Image Card</span>
+                    </button>
                 </div>
             </div>
 
@@ -249,6 +258,11 @@ export async function openModal(poke, pushToHistory = true) {
             `;
         }
 
+        const downloadCardBtn = document.getElementById('downloadCardBtn');
+        if (downloadCardBtn) {
+            downloadCardBtn.onclick = () => generateAndShareCard(poke, data, mainColor);
+        }
+
         const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
         let statBarsHTML = '';
         data.stats.forEach(s => {
@@ -371,4 +385,130 @@ export async function openModal(poke, pushToHistory = true) {
             detailsArea.innerHTML = '<div style="color: red; text-align: center; margin-top: 1rem;">Failed to load stats.</div>';
         }
     }
+}
+
+function generateAndShareCard(poke, data, mainColor) {
+    const btnText = document.getElementById('downloadCardBtnText');
+    if (btnText) btnText.textContent = 'Generating Image...';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 720;
+    canvas.height = 1020;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#141416';
+    ctx.fillRect(0, 0, 720, 1020);
+
+    const grad = ctx.createRadialGradient(360, 340, 50, 360, 340, 420);
+    grad.addColorStop(0, mainColor + '77');
+    grad.addColorStop(1, '#141416');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 720, 1020);
+
+    // Card Borders
+    ctx.strokeStyle = mainColor;
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, 680, 980);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(36, 36, 648, 948);
+
+    // Header
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = 'bold 28px sans-serif';
+    const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
+    ctx.fillText(displayId, 70, 100);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 54px sans-serif';
+    ctx.fillText(poke.name.toUpperCase(), 70, 165);
+
+    // Type Badge
+    ctx.fillStyle = mainColor;
+    ctx.beginPath();
+    ctx.roundRect(70, 190, 150, 40, 20);
+    ctx.fill();
+
+    ctx.fillStyle = '#121212';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText(poke.type_1.toUpperCase(), 95, 216);
+
+    // Sprite
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        ctx.drawImage(img, 180, 240, 360, 360);
+
+        // Stats Dashboard Card
+        ctx.fillStyle = 'rgba(18, 18, 22, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(60, 630, 600, 270, 26);
+        ctx.fill();
+        ctx.strokeStyle = mainColor + '88';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = mainColor;
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('PHYSICAL & COMBAT PROFILE', 95, 680);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '18px sans-serif';
+        ctx.fillText('HEIGHT', 95, 730);
+        ctx.fillText('WEIGHT', 380, 730);
+        ctx.fillText('PRIMARY ABILITIES', 95, 815);
+        ctx.fillText('TOTAL STATS', 380, 815);
+
+        const heightM = (data.height / 10).toFixed(1) + ' m';
+        const weightKg = (data.weight / 10).toFixed(1) + ' kg';
+        const abilities = data.abilities.slice(0, 2).map(a => a.ability.name.replace('-', ' ')).join(', ');
+        const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillText(heightM, 95, 765);
+        ctx.fillText(weightKg, 380, 765);
+        ctx.fillText(abilities.toUpperCase(), 95, 850);
+        ctx.fillText(totalStats.toString(), 380, 850);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('POKÉDEX MODERN DB • OFFICIAL SUMMARY', 360, 950);
+
+        canvas.toBlob((blob) => {
+            if (!blob) return;
+            const file = new File([blob], `${poke.name}-Card.png`, { type: 'image/png' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: `${poke.name} Summary Card`
+                }).then(() => {
+                    if (btnText) btnText.textContent = 'Shared Successfully! ✅';
+                    setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
+                }).catch(() => {
+                    triggerDownload(URL.createObjectURL(blob), poke.name, btnText);
+                });
+            } else {
+                triggerDownload(URL.createObjectURL(blob), poke.name, btnText);
+            }
+        });
+    };
+    img.onerror = () => {
+        if (btnText) btnText.textContent = 'Failed to load image';
+        setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
+    };
+    img.src = poke.sprite_url || '/vite.svg';
+}
+
+function triggerDownload(url, name, btnText) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}-Summary-Card.png`;
+    a.click();
+    if (btnText) btnText.textContent = 'Card Downloaded! ✅';
+    setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
 }

@@ -1235,6 +1235,28 @@ header p {
   border-color: var(--accent);
 }
 
+.export-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.95rem 1.5rem;
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.export-card-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 203, 5, 0.4);
+}
+
 @media (max-width: 1150px) {
   .detail-main-grid {
     grid-template-columns: 1fr;
