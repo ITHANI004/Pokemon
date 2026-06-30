@@ -2,6 +2,7 @@ import Chart from 'chart.js/auto';
 import { state } from './state.js';
 import { typeColorMap, getTypeEffectiveness } from './utils.js';
 import { loadEvolutionTree } from './evolution.js';
+import { getAnimeChronicle } from './animeLore.js';
 
 let currentChart = null;
 
@@ -64,6 +65,7 @@ export async function openModal(poke, pushToHistory = true) {
 
     const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
     const mainColor = typeColorMap[poke.type_1.toLowerCase()] || '#ffffff';
+    const animeInfo = getAnimeChronicle(poke);
 
     let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}" style="font-size: 0.95rem; padding: 0.45rem 1.2rem;">${poke.type_1}</span>`;
     if (poke.type_2) {
@@ -145,6 +147,26 @@ export async function openModal(poke, pushToHistory = true) {
                 <div id="modal-moves-area">
                     <div style="text-align: center; color: ${mainColor}; padding: 1.5rem 0;">Loading move pool...</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Anime Series Chronicles Card -->
+        <div class="detail-info-card" style="border-color: ${mainColor}66; margin-bottom: 2.5rem; background: radial-gradient(circle at top left, ${mainColor}18 0%, rgba(255,255,255,0.03) 70%);">
+            <div class="card-section-title" style="color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+                <span>🎬 ANIME SERIES CHRONICLES & DEBUT</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="background: rgba(0,0,0,0.35); padding: 1.2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; font-weight: 700;">First Anime Appearance</div>
+                    <div style="color: ${mainColor}; font-weight: 800; font-size: 1.05rem;">${animeInfo.debut}</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.35); padding: 1.2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; font-weight: 700;">Famous Anime Trainer / Era</div>
+                    <div style="color: #fff; font-weight: 800; font-size: 1.05rem;">${animeInfo.trainer}</div>
+                </div>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 18px; border-left: 4px solid ${mainColor}; font-size: 1.02rem; line-height: 1.65; color: rgba(255,255,255,0.9);">
+                <span style="font-weight: 700; color: ${mainColor}; margin-right: 0.5rem;">📺 Series Storyline:</span> ${animeInfo.story}
             </div>
         </div>
 
@@ -503,10 +525,15 @@ function generateAndShareCard(poke, data, mainColor) {
         ctx.font = 'bold 22px sans-serif';
         ctx.fillText(abilities, 95, 890);
 
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.font = '16px sans-serif';
+        const animeInfo = getAnimeChronicle(poke);
+        ctx.fillStyle = mainColor;
+        ctx.font = 'bold 15px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('POKÉDEX MODERN DB • OFFICIAL SUMMARY', 360, 960);
+        ctx.fillText(`🎬 ANIME DEBUT: ${animeInfo.debut.toUpperCase()}`, 360, 935);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '15px sans-serif';
+        ctx.fillText('POKÉDEX MODERN DB • OFFICIAL SUMMARY', 360, 968);
 
         canvas.toBlob((blob) => {
             if (!blob) return;
