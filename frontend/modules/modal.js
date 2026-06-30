@@ -102,10 +102,10 @@ export async function openModal(poke, pushToHistory = true) {
                     </div>
                 </div>
                 <div id="export-card-area" style="margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <div style="color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.8rem; font-weight: 700; letter-spacing: 1px;">Share & Export</div>
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.8rem; font-weight: 700; letter-spacing: 1px;">Download Card</div>
                     <button id="downloadCardBtn" class="export-card-btn" style="background: ${mainColor}; color: #121212;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        <span id="downloadCardBtnText">Share as Image Card</span>
+                        <span id="downloadCardBtnText">Download as Image</span>
                     </button>
                 </div>
             </div>
@@ -442,9 +442,9 @@ function generateAndShareCard(poke, data, mainColor) {
         ctx.drawImage(img, 180, 240, 360, 360);
 
         // Stats Dashboard Card
-        ctx.fillStyle = 'rgba(18, 18, 22, 0.85)';
+        ctx.fillStyle = 'rgba(18, 18, 22, 0.9)';
         ctx.beginPath();
-        ctx.roundRect(60, 630, 600, 270, 26);
+        ctx.roundRect(60, 620, 600, 290, 26);
         ctx.fill();
         ctx.strokeStyle = mainColor + '88';
         ctx.lineWidth = 2;
@@ -452,54 +452,57 @@ function generateAndShareCard(poke, data, mainColor) {
 
         ctx.fillStyle = mainColor;
         ctx.font = 'bold 22px sans-serif';
-        ctx.fillText('PHYSICAL & COMBAT PROFILE', 95, 680);
+        ctx.fillText('PHYSICAL & COMBAT PROFILE', 95, 665);
 
+        // Row 1: Height & Weight
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.font = '18px sans-serif';
-        ctx.fillText('HEIGHT', 95, 730);
-        ctx.fillText('WEIGHT', 380, 730);
-        ctx.fillText('PRIMARY ABILITIES', 95, 815);
-        ctx.fillText('TOTAL STATS', 380, 815);
+        ctx.font = '16px sans-serif';
+        ctx.fillText('HEIGHT', 95, 710);
+        ctx.fillText('WEIGHT', 360, 710);
 
         const heightM = (data.height / 10).toFixed(1) + ' m';
         const weightKg = (data.weight / 10).toFixed(1) + ' kg';
-        const abilities = data.abilities.slice(0, 2).map(a => a.ability.name.replace('-', ' ')).join(', ');
-        const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
-
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 26px sans-serif';
-        ctx.fillText(heightM, 95, 765);
-        ctx.fillText(weightKg, 380, 765);
-        ctx.fillText(abilities.toUpperCase(), 95, 850);
-        ctx.fillText(totalStats.toString(), 380, 850);
+        ctx.fillText(heightM, 95, 742);
+        ctx.fillText(weightKg, 360, 742);
+
+        // Row 2: Base Experience & Total Stats
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('BASE EXPERIENCE', 95, 785);
+        ctx.fillText('TOTAL BASE STATS', 360, 785);
+
+        const baseXp = (data.base_experience || 'Unknown') + ' XP';
+        const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillText(baseXp, 95, 817);
+        ctx.fillText(totalStats.toString(), 360, 817);
+
+        // Row 3: Primary Abilities (Full width across bottom row)
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('PRIMARY ABILITIES', 95, 860);
+
+        const abilities = data.abilities.slice(0, 3).map(a => a.ability.name.replace('-', ' ')).join(', ').toUpperCase();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText(abilities, 95, 890);
 
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
         ctx.font = '16px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('POKÉDEX MODERN DB • OFFICIAL SUMMARY', 360, 950);
+        ctx.fillText('POKÉDEX MODERN DB • OFFICIAL SUMMARY', 360, 960);
 
         canvas.toBlob((blob) => {
             if (!blob) return;
-            const file = new File([blob], `${poke.name}-Card.png`, { type: 'image/png' });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({
-                    files: [file],
-                    title: `${poke.name} Summary Card`
-                }).then(() => {
-                    if (btnText) btnText.textContent = 'Shared Successfully! ✅';
-                    setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
-                }).catch(() => {
-                    triggerDownload(URL.createObjectURL(blob), poke.name, btnText);
-                });
-            } else {
-                triggerDownload(URL.createObjectURL(blob), poke.name, btnText);
-            }
+            triggerDownload(URL.createObjectURL(blob), poke.name, btnText);
         });
     };
     img.onerror = () => {
         if (btnText) btnText.textContent = 'Failed to load image';
-        setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
+        setTimeout(() => { if (btnText) btnText.textContent = 'Download as Image'; }, 3000);
     };
     img.src = poke.sprite_url || '/vite.svg';
 }
@@ -510,5 +513,5 @@ function triggerDownload(url, name, btnText) {
     a.download = `${name}-Summary-Card.png`;
     a.click();
     if (btnText) btnText.textContent = 'Card Downloaded! ✅';
-    setTimeout(() => { if (btnText) btnText.textContent = 'Share as Image Card'; }, 3000);
+    setTimeout(() => { if (btnText) btnText.textContent = 'Download as Image'; }, 3000);
 }
