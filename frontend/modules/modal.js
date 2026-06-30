@@ -65,9 +65,9 @@ export async function openModal(poke, pushToHistory = true) {
     const displayId = '#' + poke.pokedex_number.toString().padStart(3, '0');
     const mainColor = typeColorMap[poke.type_1.toLowerCase()] || '#ffffff';
 
-    let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}" style="font-size: 1rem; padding: 0.5rem 1.2rem;">${poke.type_1}</span>`;
+    let typesHTML = `<span class="type-badge type-${poke.type_1.toLowerCase()}" style="font-size: 0.95rem; padding: 0.45rem 1.2rem;">${poke.type_1}</span>`;
     if (poke.type_2) {
-        typesHTML += `<span class="type-badge type-${poke.type_2.toLowerCase()}" style="font-size: 1rem; padding: 0.5rem 1.2rem;">${poke.type_2}</span>`;
+        typesHTML += `<span class="type-badge type-${poke.type_2.toLowerCase()}" style="font-size: 0.95rem; padding: 0.45rem 1.2rem;">${poke.type_2}</span>`;
     }
 
     detailView.innerHTML = `
@@ -76,51 +76,90 @@ export async function openModal(poke, pushToHistory = true) {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                 <span>Back to Pokédex</span>
             </button>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button id="sharePageBtn" class="random-btn" style="height: 46px; border-color: rgba(255,255,255,0.2); color: white;">
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                <button id="playCryBtn" class="random-btn" style="height: 44px; border-color: rgba(255,255,255,0.2); color: white;">
+                    <span>🔊 Play Cry</span>
+                </button>
+                <button id="sharePageBtn" class="random-btn" style="height: 44px; border-color: rgba(255,255,255,0.2); color: white;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                     <span id="shareBtnText">Share Link</span>
                 </button>
-                <button id="compareBtn" class="compare-btn" style="height: 46px; padding: 0 1.8rem; background: ${mainColor}; color: #121212; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: transform 0.2s; font-size: 0.95rem;">Compare Pokémon</button>
+                <button id="compareBtn" class="compare-btn" style="height: 44px; padding: 0 1.6rem; background: ${mainColor}; color: #121212; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; transition: transform 0.2s; font-size: 0.95rem;">Compare Pokémon</button>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 4rem; padding-top: 1rem;">
-            <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 2px;">${displayId}</div>
-            <h1 style="font-size: 4.5rem; font-family: var(--font-heading); margin-bottom: 1.5rem; color: #fff; text-shadow: 0 0 30px ${mainColor}66;">${poke.name}</h1>
-            <div style="display: flex; justify-content: center; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
-                ${typesHTML}
-                <span class="trait-badge" style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.5rem 1.2rem; font-size: 0.95rem; border-radius: 50px;">Generation ${poke.generation}</span>
-            </div>
-            <div class="detail-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%); width: 320px; height: 320px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 2.5rem;">
-                <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}" style="width: 95%; height: 95%; object-fit: contain; filter: drop-shadow(0 25px 35px rgba(0,0,0,0.6));">
-            </div>
-            <div id="modal-lore-area" style="font-style: italic; color: var(--text-secondary); font-size: 1.15rem; line-height: 1.6; max-width: 650px; background: rgba(0,0,0,0.25); padding: 1.5rem 2rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06);">
-                Loading Pokédex entry...
-            </div>
-        </div>
-
-        <div class="modal-body-grid three-col" style="gap: 4rem; align-items: start; margin-bottom: 5rem;">
-            <div class="modal-left">
+        <!-- Main 3-Column Hero Grid -->
+        <div class="detail-main-grid">
+            <!-- Left Column: Pokédex Profile & Bio -->
+            <div class="detail-info-card" style="border-color: ${mainColor}44;">
+                <div class="card-section-title">Pokédex Data & Profile</div>
                 <div id="modal-details-area">
-                    <div style="text-align: center; color: ${mainColor}; padding: 2rem; font-weight: bold;">Loading details...</div>
+                    <div style="text-align: center; color: ${mainColor}; padding: 2rem 0;">Loading profile...</div>
+                </div>
+                <div id="modal-lore-area" class="detail-lore-entry">
+                    Loading Pokédex entry...
                 </div>
             </div>
-            <div class="modal-right">
+
+            <!-- Center Column: Artwork & Identification -->
+            <div class="detail-centerpiece">
+                <div class="detail-id-tag">${displayId}</div>
+                <h1 class="detail-title" style="text-shadow: 0 0 35px ${mainColor}66;">${poke.name}</h1>
+                <div class="detail-badges-row">
+                    ${typesHTML}
+                    <span class="trait-badge" style="background: rgba(255,255,255,0.12); color: #fff; padding: 0.45rem 1.1rem; font-size: 0.9rem; border-radius: 50px;">Generation ${poke.generation}</span>
+                </div>
+                <div class="detail-img-container" style="background: radial-gradient(circle, ${mainColor}88 0%, transparent 70%);">
+                    <img class="detail-img" src="${poke.sprite_url || '/vite.svg'}" alt="${poke.name}">
+                </div>
+            </div>
+
+            <!-- Right Column: Base Stats & Radar Chart -->
+            <div class="detail-info-card" style="border-color: ${mainColor}44;">
+                <div class="card-section-title">Base Stats Breakdown</div>
                 <div id="modal-chart-area">
-                    <div style="text-align: center; color: ${mainColor}; padding: 2rem; font-weight: bold;">Fetching advanced stats...</div>
+                    <div style="text-align: center; color: ${mainColor}; padding: 2rem 0;">Fetching base stats...</div>
                 </div>
             </div>
         </div>
 
-        <div id="evo-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">Loading evolutionary line...</div>
+        <!-- Secondary 2-Column Grid for Combat & Moves -->
+        <div class="detail-secondary-grid">
+            <div class="detail-info-card" style="border-color: rgba(255,255,255,0.08);">
+                <div class="card-section-title">Type Defenses & Matchups</div>
+                <div id="modal-combat-area">
+                    <div style="text-align: center; color: ${mainColor}; padding: 1.5rem 0;">Calculating effectiveness...</div>
+                </div>
+            </div>
+            <div class="detail-info-card" style="border-color: rgba(255,255,255,0.08);">
+                <div class="card-section-title">Notable Learned Moves</div>
+                <div id="modal-moves-area">
+                    <div style="text-align: center; color: ${mainColor}; padding: 1.5rem 0;">Loading move pool...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evolutionary Line Card -->
+        <div class="detail-info-card" style="border-color: rgba(255,255,255,0.08);">
+            <div class="card-section-title">Evolutionary Line</div>
+            <div id="evo-section">
+                <div style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0;">Loading evolutionary line...</div>
+            </div>
         </div>
     `;
 
     const backToGridBtn = document.getElementById('backToGridBtn');
     if (backToGridBtn) {
         backToGridBtn.onclick = () => closeModal(true);
+    }
+
+    const playCryBtn = document.getElementById('playCryBtn');
+    if (playCryBtn) {
+        playCryBtn.onclick = () => {
+            const audioUrl = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${poke.pokedex_number}.ogg`;
+            const audio = new Audio(audioUrl);
+            audio.play().catch(err => console.log('Cry playback error:', err));
+        };
     }
 
     const sharePageBtn = document.getElementById('sharePageBtn');
@@ -167,71 +206,77 @@ export async function openModal(poke, pushToHistory = true) {
             state.pokeApiCache.set(cacheKey, data);
         }
 
-        const heightM = data.height / 10;
-        const weightKg = data.weight / 10;
-        const abilityName = data.abilities.length > 0 ? data.abilities[0].ability.name.replace('-', ' ') : 'Unknown';
+        const heightM = (data.height / 10).toFixed(1);
+        const heightFtTotal = data.height * 0.328084;
+        const heightFt = Math.floor(heightFtTotal);
+        const heightIn = Math.round((heightFtTotal - heightFt) * 12);
 
-        let moveName = 'None';
-        if (data.moves && data.moves.length > 0) {
-            moveName = data.moves[data.moves.length - 1].move.name.replace('-', ' ');
-        }
+        const weightKg = (data.weight / 10).toFixed(1);
+        const weightLbs = (data.weight * 0.220462).toFixed(1);
+        const baseXp = data.base_experience || 'Unknown';
+        const order = data.order || poke.pokedex_number;
+
+        const abilitiesList = data.abilities.map(a => {
+            const name = a.ability.name.replace('-', ' ');
+            return a.is_hidden ? `${name} (Hidden)` : name;
+        }).join(', ');
 
         const detailsArea = document.getElementById('modal-details-area');
         if (detailsArea) {
             detailsArea.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; background: rgba(0,0,0,0.25); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 20px rgba(0,0,0,0.3);">
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Height</div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: ${mainColor}">${heightM} m</div>
+                <div class="profile-list">
+                    <div class="profile-row">
+                        <span class="profile-label">Height</span>
+                        <span class="profile-value" style="color: ${mainColor}">${heightM} m (${heightFt}'${heightIn}")</span>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Weight</div>
-                        <div style="font-size: 1.5rem; font-weight: bold; color: ${mainColor}">${weightKg} kg</div>
+                    <div class="profile-row">
+                        <span class="profile-label">Weight</span>
+                        <span class="profile-value" style="color: ${mainColor}">${weightKg} kg (${weightLbs} lbs)</span>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Ability</div>
-                        <div style="font-size: 1.3rem; font-weight: bold; text-transform: capitalize;">${abilityName}</div>
+                    <div class="profile-row">
+                        <span class="profile-label">Base Experience</span>
+                        <span class="profile-value">${baseXp} XP</span>
                     </div>
-                    <div style="width: 80%; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                    <div style="text-align: center; width: 100%;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem;">Special Move</div>
-                        <div style="font-size: 1.3rem; font-weight: bold; text-transform: capitalize;">${moveName}</div>
+                    <div class="profile-row">
+                        <span class="profile-label">Abilities</span>
+                        <span class="profile-value" style="text-transform: capitalize;">${abilitiesList}</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">Order</span>
+                        <span class="profile-value">#${order}</span>
                     </div>
                 </div>
             `;
         }
 
-        const effectiveness = getTypeEffectiveness(poke.type_1, poke.type_2);
-        let weaknessHTML = '';
-        effectiveness.weak.forEach(w => {
-            weaknessHTML += `<span class="type-badge type-${w.type}" style="font-size: 0.75rem; margin: 0.2rem; padding: 0.3rem 0.6rem;">${w.type} ${w.mult}x</span>`;
+        const totalStats = data.stats.reduce((acc, s) => acc + s.base_stat, 0);
+        let statBarsHTML = '';
+        data.stats.forEach(s => {
+            const statName = s.stat.name.replace('-', ' ').toUpperCase();
+            const shortName = statName === 'SPECIAL ATTACK' ? 'SP. ATK' :
+                              statName === 'SPECIAL DEFENSE' ? 'SP. DEF' : statName;
+            const pct = Math.min((s.base_stat / 255) * 100, 100);
+            statBarsHTML += `
+                <div class="stat-progress-row">
+                    <span class="stat-label">${shortName}</span>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-fill" style="width: ${pct}%; background: ${mainColor}; box-shadow: 0 0 10px ${mainColor};"></div>
+                    </div>
+                    <span class="stat-val">${s.base_stat}</span>
+                </div>
+            `;
         });
-        let resistHTML = '';
-        effectiveness.resist.forEach(r => {
-            resistHTML += `<span class="type-badge type-${r.type}" style="font-size: 0.75rem; margin: 0.2rem; opacity: 0.8; padding: 0.3rem 0.6rem;">${r.type} ${r.mult}x</span>`;
-        });
-        effectiveness.immune.forEach(i => {
-            resistHTML += `<span class="type-badge type-${i}" style="font-size: 0.75rem; margin: 0.2rem; opacity: 0.5; padding: 0.3rem 0.6rem;">${i} 0x</span>`;
-        });
-        if (!resistHTML) resistHTML = '<span style="color:var(--text-secondary); font-size: 0.85rem;">None</span>';
 
         const chartArea = document.getElementById('modal-chart-area');
         if (chartArea) {
             chartArea.innerHTML = `
-                <div style="width: 100%; max-width: 350px; position: relative; margin: 0 auto;">
-                    <canvas id="statChart"></canvas>
+                <div style="margin-bottom: 1.5rem;">${statBarsHTML}</div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1rem; margin-bottom: 1.2rem; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.05rem;">
+                    <span style="color: var(--text-secondary);">TOTAL BASE STATS</span>
+                    <span style="color: ${mainColor}; font-size: 1.2rem;">${totalStats}</span>
                 </div>
-                <div style="margin-top: 1.5rem; background: rgba(0,0,0,0.25); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: bold; letter-spacing: 1px;">Weaknesses</div>
-                        <div style="display: flex; flex-wrap: wrap;">${weaknessHTML}</div>
-                    </div>
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: bold; letter-spacing: 1px;">Resistances & Immunities</div>
-                        <div style="display: flex; flex-wrap: wrap;">${resistHTML}</div>
-                    </div>
+                <div style="width: 100%; max-width: 280px; margin: 0 auto;">
+                    <canvas id="statChart"></canvas>
                 </div>
             `;
         }
@@ -240,7 +285,10 @@ export async function openModal(poke, pushToHistory = true) {
         const statChartEl = document.getElementById('statChart');
         if (statChartEl) {
             const ctx = statChartEl.getContext('2d');
-            const statNames = data.stats.map(s => s.stat.name.toUpperCase().replace('-', ' '));
+            const statNames = data.stats.map(s => {
+                const n = s.stat.name.replace('-', ' ').toUpperCase();
+                return n === 'SPECIAL ATTACK' ? 'SP. ATK' : n === 'SPECIAL DEFENSE' ? 'SP. DEF' : n;
+            });
             const statValues = data.stats.map(s => s.base_stat);
 
             currentChart = new Chart(ctx, {
@@ -264,7 +312,7 @@ export async function openModal(poke, pushToHistory = true) {
                         r: {
                             angleLines: { color: 'rgba(255,255,255,0.1)' },
                             grid: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: 'rgba(255,255,255,0.9)', font: { size: 11, family: 'Inter', weight: '600' } },
+                            pointLabels: { color: 'rgba(255,255,255,0.85)', font: { size: 10, family: 'Inter', weight: '600' } },
                             ticks: { display: false, max: 255, min: 0 }
                         }
                     },
@@ -272,6 +320,47 @@ export async function openModal(poke, pushToHistory = true) {
                     maintainAspectRatio: true
                 }
             });
+        }
+
+        const effectiveness = getTypeEffectiveness(poke.type_1, poke.type_2);
+        let weaknessHTML = '';
+        effectiveness.weak.forEach(w => {
+            weaknessHTML += `<span class="type-badge type-${w.type}" style="font-size: 0.78rem; margin: 0.2rem; padding: 0.35rem 0.7rem;">${w.type} ${w.mult}x</span>`;
+        });
+        let resistHTML = '';
+        effectiveness.resist.forEach(r => {
+            resistHTML += `<span class="type-badge type-${r.type}" style="font-size: 0.78rem; margin: 0.2rem; opacity: 0.85; padding: 0.35rem 0.7rem;">${r.type} ${r.mult}x</span>`;
+        });
+        effectiveness.immune.forEach(i => {
+            resistHTML += `<span class="type-badge type-${i}" style="font-size: 0.78rem; margin: 0.2rem; opacity: 0.55; padding: 0.35rem 0.7rem;">${i} 0x</span>`;
+        });
+        if (!resistHTML) resistHTML = '<span style="color:var(--text-secondary); font-size: 0.9rem;">None</span>';
+
+        const combatArea = document.getElementById('modal-combat-area');
+        if (combatArea) {
+            combatArea.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.7rem; font-weight: 700; letter-spacing: 1px;">Weaknesses (Vulnerable To)</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">${weaknessHTML}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-secondary); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.7rem; font-weight: 700; letter-spacing: 1px;">Resistances & Immunities</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">${resistHTML}</div>
+                </div>
+            `;
+        }
+
+        const movesArea = document.getElementById('modal-moves-area');
+        if (movesArea && data.moves) {
+            const notableMoves = data.moves
+                .slice(0, 16)
+                .map(m => `<span class="move-tag">${m.move.name.replace('-', ' ')}</span>`)
+                .join('');
+            movesArea.innerHTML = `
+                <div style="display: flex; flex-wrap: wrap; text-transform: capitalize;">
+                    ${notableMoves || '<span style="color:var(--text-secondary);">No moves listed</span>'}
+                </div>
+            `;
         }
 
         loadEvolutionTree(poke, data, mainColor, openModal);
